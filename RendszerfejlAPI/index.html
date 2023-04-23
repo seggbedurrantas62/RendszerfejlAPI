@@ -532,18 +532,21 @@
         }
     }
     function Add_Incoming_Parts(){
+        //rekeszID nem jó a gombból ha törlődik ,biztosabb megoldás kell
+
+        let elem_id = parts[document.getElementById("part_name").selectedIndex].elemId;             //elemId
         let rekeszek = document.getElementById("crate_id").getElementsByClassName( 'btn-primary' ); //rekeszek amikben ez az alkatrész van
         let uj_alkatresz_db = document.getElementById("db").value;                                  //hány db új alkatrész
         let raktar = 0;                                                                             //összes rekesz mérete egyben
         for (let i=0;i<rekeszek.length;i++){
-            raktar += crates[rekeszek[i].innerHTML-1].rekeszMeret;
+            raktar += crates[search_array(crates,rekeszek[i].innerHTML)].rekeszMeret;
         }
         let regi_alkatresz_db = document.getElementById("crate_size").innerHTML;                    //ennyi már van raktáron
         let alkatresz_meret = parts[document.getElementById("part_name").selectedIndex].meret;      //alkatrész mérete
 
         for (let i=0;i<rekeszek.length;i++){
             let elpakolt_db=0;
-            let elem_db = parseInt(crates[rekeszek[i].innerHTML-1].rekeszMeret / alkatresz_meret); //ennyi alkatrész fér bele a rekeszbe
+            let elem_db = parseInt(crates[search_array(crates,rekeszek[i].innerHTML)].rekeszMeret / alkatresz_meret); //ennyi alkatrész fér bele a rekeszbe
             if (uj_alkatresz_db - elem_db >= 0 ){
                 elpakolt_db = elem_db;
                 uj_alkatresz_db -= elem_db;
@@ -551,6 +554,11 @@
                 elpakolt_db = uj_alkatresz_db;
                 uj_alkatresz_db = 0;
             }
+
+            //ki kell venni majd
+            console.log("nincs töltés");
+            $("#Incoming_Parts").modal('toggle');
+
             // let array = {
             //     "rekeszId":     crates[rekeszek[i].innerHTML-1].rekeszId,
             //     "elemId":       crates[rekeszek[i].innerHTML-1].elemId,
@@ -564,6 +572,7 @@
             // putData('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Raktar/'+crates[rekeszek[i].innerHTML-1].rekeszId, array).then((data) =>
             // {
             //     console.log(data);
+            //     $("#Incoming_Parts").modal('toggle');
             // });
         }
         if (uj_alkatresz_db>0){
@@ -575,69 +584,67 @@
 
             let ok=true;
             for (let i=0;i<crate_places.length;i++){
-                if (a.sor == crate_places[i].sor && a.oszlop == crate_places[i].oszlop &&a.szint == crate_places[i].szint){
+                if ( JSON.stringify(a) === JSON.stringify(crate_places[i]) ){
                     ok=false;
                     break;
                 }
             }
             if (!ok){
                 a = crate_place_check(a);
+
+                console.log(a);
             }
 
-            // let array = {
-            //     "elemId":       crates[rekeszek[i].innerHTML-1].elemId,
-            //     "sor":          a.row,
-            //     "oszlop":       a.col,
-            //     "szint":        a.floor,
-            //     "rekeszMeret":  uj_alkatresz_db*alkatresz_meret,
-            //     "elem":         uj_alkatresz_db,
-            // };
+            let array = {
+                "elemId":       elem_id,
+                "sor":          a.sor,
+                "oszlop":       a.oszlop,
+                "szint":        a.szint,
+                "rekeszMeret":  uj_alkatresz_db*alkatresz_meret
+            };
 
-            // postData('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Raktar, array).then((data) =>
-            // {
-            //     console.log(data);
-            // });
+            postData('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Raktar', array).then((data) =>
+            {
+                console.log(data);
+                $("#Incoming_Parts").modal('toggle');
+            });
         }
 
-        $("#Incoming_Parts").modal('toggle');
+    }
+    function search_array(array,valuetofind) {
+        for (let i = 0; i < array.length; i++) {
+            if (parseInt(array[i]['rekeszId']) === parseInt(valuetofind)) {
+                return i;
+            }
+        }
+        return -1;
     }
     function crate_place_check(place={}){
         let all_ok = true;
 
-        console.log(place);
+        while ( all_ok ){
+            place.sor = parseInt(place.sor) + 1;
+        loop1:
+            for (let i=0;i<crate_places.length;i++){
+                if (JSON.stringify(place) === JSON.stringify(crate_places[i])){
+                    place.oszlop = parseInt(place.oszlop) + 1;
+                    for (let j=0;j<crate_places.length;j++){
+                        if (JSON.stringify(place) === JSON.stringify(crate_places[j])){
+                            place.szint = parseInt(place.szint) + 1;
+                            for (let k=0;k<crate_places.length;k++){
+                                if (JSON.stringify(place) === JSON.stringify(crate_places[k])){
+                                    all_ok = true;
+                                    break loop1;
+                                }
+                                all_ok=false;
+                            }
+                        }
+                    }
+                }
+            }
+            all_ok = false;
 
-        // while ( all_ok ){
-        //     place.sor = parseInt(place.sor) + 1;
-        //     console.log(place.sor);
-        // loop1:
-        //     for (let i=0;i<crate_places.length;i++){
-        //         if (place.sor == crate_places[i].sor && place.oszlop == crate_places[i].oszlop && place.szint == crate_places[i].szint){
-        //             place.oszlop = parseInt(place.oszlop) + 1;
-        //             for (let j=0;j<crate_places.length;j++){
-        //                 if (place.sor == crate_places[j].sor && place.oszlop == crate_places[j].oszlop && place.szint == crate_places[j].szint){
-        //                     place.szint = parseInt(place.szint) + 1;
-        //                     for (let k=0;k<crate_places.length;k++){
-        //                         if (place.sor == crate_places[k].sor && place.oszlop == crate_places[k].oszlop && place.szint == crate_places[k].szint){
-        //                             all_ok = true;
-        //                             break loop1;
-        //                         }
-        //                         all_ok=false;
-        //                     }
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
-        //
-        //
-        // if (place.sor == "50"){
-        //     all_ok = false;
-        // }
-        // if (place.sor == 50){
-        //     all_ok = false;
-        // }
-        console.log(place);
-
+        }
         return place;
     }
 
@@ -903,4 +910,6 @@
                 }
             });
     }
+
+
 </script>

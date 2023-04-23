@@ -43,6 +43,9 @@
                             <label for="Password" class="form-label">Jelszó</label>
                             <input asp-for="Password" type="password" class="form-control" id="Password" placeholder="Password" runat="server">
                         </div>
+                        <div class="mb-3">
+                            <p id="wrong"></p>
+                        </div>
                         <button type="submit" class="btn btn-primary w-100">Bejelentkezés</button>
                     </form>
                 </div>
@@ -63,6 +66,10 @@
         </div>
     </div>
 </div>
+
+<button id="modal_close" type="button" class="btn-close d-none" data-bs-dismiss="modal" data-bs-target="#staticBackdrop" aria-label="Close"></button>
+
+
 </body>
 </html>
 
@@ -103,10 +110,18 @@
 
                     $("#staticBackdrop").modal('toggle');
                     location.replace('index.html');
-                }else{
+                }else {
+                    document.getElementById("wrong").innerText = "Rossz felhasználónév vagy jelszó!";
+                    document.getElementById("wrong").classList.add("text-danger");
                     $("#staticBackdrop").modal('toggle');
-                    alert("Rossz felhasználónév vagy jelszó!");
+                    // document.getElementById("modal_close").click();
                 }
+            }).catch(()=>
+            {
+                document.getElementById("wrong").innerText = "Rossz felhasználónév vagy jelszó!";
+                document.getElementById("wrong").classList.add("text-danger");
+                $("#staticBackdrop").modal('toggle');
+                // document.getElementById("modal_close").click();
             });
     }
 </script>
