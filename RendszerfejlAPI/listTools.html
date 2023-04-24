@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Alkatrészek</title>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <meta charset="UTF-8">
+</head>
+<body>
+    <div class="container mt-5">
+
+        <h1>Alkatrészek listázása</h1>
+
+        <div class="card">
+            <div class="card-header">
+                <table class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Név</th>
+                            <th>Ár</th>
+                            <th>Állapot</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let hash = '';
+        const username = 'Admin';
+        const password = '1234';
+        const data = { username: username, password: password };
+        fetch('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Authenticate', {
+            method: 'POST',
+            body: JSON.stringify(data),
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.text())
+        .then(text => {
+            hash = text;
+            console.log(hash);
+            return fetch('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Alkatresz', {
+                headers: { Authorization: 'Bearer ' + hash }
+            });
+        })
+        .then(resp => resp.json())
+        .then(json => {
+            console.log(JSON.stringify(json));
+            const tbody = document.getElementById('tableBody');
+            for (const item of json) {
+                const row = document.createElement('tr');
+                const idCell = document.createElement('td');
+                idCell.textContent = item.elemId;
+                row.appendChild(idCell);
+                const nameCell = document.createElement('td');
+                nameCell.textContent = item.elemNev;
+                row.appendChild(nameCell);
+                const priceCell = document.createElement('td');
+                priceCell.textContent = `${item.elemAr} Ft`;
+                row.appendChild(priceCell);
+                const stateCell = document.createElement('td');
+                stateCell.textContent = item.alkatreszAllapot;
+                row.appendChild(stateCell);
+                tbody.appendChild(row);
+            }
+        })
+        .catch(error => console.log(error));
+    </script>
+</body>
+</html>

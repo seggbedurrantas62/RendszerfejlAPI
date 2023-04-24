@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Projektek</title>
+	<!-- Load Bootstrap stylesheet -->
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <meta charset="UTF-8">
+</head>
+<body>
+	<div class="container mt-5">
+		<h1>Projektek listázása</h1>
+		<!-- List of elements from API -->
+		<div class="card">
+			<div class="card-header">
+				<table class="table table-bordered table-striped">
+					<thead>
+						<tr>
+							<th>ID</th>
+							<th>Állapot</th>
+							<th>Létrehozás ideje</th>
+						</tr>
+					</thead>
+                    <tbody id="tableBody">
+                    </tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+	
+	<!-- API call -->
+	<script>
+		let hash = '';
+		const username = 'Admin';
+		const password = '1234';
+		const data = { username: username, password: password };
+		fetch('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Authenticate', {
+			method: 'POST',
+			body: JSON.stringify(data),
+			headers: { 'Content-Type': 'application/json' }
+		})
+		.then(response => response.text())
+		.then(text => {
+			hash = text;
+			console.log(hash);
+			return fetch('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt', {
+				headers: { Authorization: 'Bearer ' + hash }
+			});
+		})
+		.then(resp => resp.json())
+		.then(json => {
+			console.log(JSON.stringify(json));
+            const tbody = document.getElementById('tableBody');
+            for (const item of json) {
+                const row = document.createElement('tr');
+                const idCell = document.createElement('td');
+                idCell.textContent = item.projektId;
+                row.appendChild(idCell);
+                const statusCell = document.createElement('td');
+                statusCell.textContent = item.allapot;
+                row.appendChild(statusCell);
+                const dateCell = document.createElement('td');
+                dateCell.textContent = item.datum;
+                row.appendChild(dateCell);
+                if(statusCell.textContent != "")
+                    tbody.appendChild(row);
+            }
+		})
+		.catch(error => console.log(error));
+	</script>
+</body>
+</html>
