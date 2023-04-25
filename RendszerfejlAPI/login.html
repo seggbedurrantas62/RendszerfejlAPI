@@ -34,19 +34,19 @@
                     <h3>Bejelentkezés</h3>
                 </div>
                 <div class="card-body">
-                    <form asp-action="Login" class="form-group" id="login-form" onsubmit="on_Submit()" action="javascript:void(0)" runat="server">
+                    <form class="form-group" id="login-form" onsubmit="on_Submit()" action="javascript:void(0)">
                         <div class="mb-3">
                             <label for="Login" class="form-label">Email cím</label>
-                            <input asp-for="Login" type="text" class="form-control" id="Login" placeholder="name" runat="server">
+                            <input type="text" class="form-control" id="Login" placeholder="name">
                         </div>
                         <div class="mb-3">
                             <label for="Password" class="form-label">Jelszó</label>
-                            <input asp-for="Password" type="password" class="form-control" id="Password" placeholder="Password" runat="server">
+                            <input type="password" class="form-control" id="Password" placeholder="Password">
                         </div>
                         <div class="mb-3">
                             <p id="wrong"></p>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100">Bejelentkezés</button>
+                        <button id="submit_btn" type="submit" class="btn btn-primary w-100">Bejelentkezés</button>
                     </form>
                 </div>
             </div>
@@ -54,7 +54,7 @@
     </div>
 </div>
 
-<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+<div class="modal" id="staticBackdrop" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -67,8 +67,8 @@
     </div>
 </div>
 
-<button id="modal_close" type="button" class="btn-close d-none" data-bs-dismiss="modal" data-bs-target="#staticBackdrop" aria-label="Close"></button>
-
+<button id="modal_open" type="button" class="btn btn-primary d-none" data-bs-toggle="modal" data-bs-target="#staticBackdrop"></button>
+<button id="modal_close" type="button" class="btn-close d-none" data-dismiss="modal" data-bs-dismiss="modal" data-bs-target="#staticBackdrop" aria-label="Close"></button>
 
 </body>
 </html>
@@ -93,7 +93,8 @@
     }
 
     function on_Submit(){
-        $("#staticBackdrop").modal('toggle');
+        document.getElementById("modal_open").click();
+        document.getElementById("submit_btn").classList.add("disabled");
 
         let username = document.getElementById("Login").value;
         let password = document.getElementById("Password").value
@@ -105,23 +106,18 @@
         postData('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Authenticate', array)
             .then((data) =>
             {
+                document.getElementById("modal_close").click();
                 if ( data != 'Invalid credentials'){
                     sessionStorage.setItem("token", data);
 
-                    $("#staticBackdrop").modal('toggle');
                     location.replace('index.html');
-                }else {
+                }else{
                     document.getElementById("wrong").innerText = "Rossz felhasználónév vagy jelszó!";
                     document.getElementById("wrong").classList.add("text-danger");
-                    $("#staticBackdrop").modal('toggle');
-                    // document.getElementById("modal_close").click();
+
+                    document.getElementById("submit_btn").classList.remove("disabled");
                 }
-            }).catch(()=>
-            {
-                document.getElementById("wrong").innerText = "Rossz felhasználónév vagy jelszó!";
-                document.getElementById("wrong").classList.add("text-danger");
-                $("#staticBackdrop").modal('toggle');
-                // document.getElementById("modal_close").click();
+
             });
     }
 </script>

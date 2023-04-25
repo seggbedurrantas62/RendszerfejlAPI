@@ -62,9 +62,9 @@
     <main class="p-3">
         <div class="ms-3 mb-1 mt-1">
             <select onchange="Show_Table()" id="table_show" class="form-select" aria-label="Default select example" style="width: 15%;">
-                <option value="Projekt">Projekt</option>
+                <option value="Projekt" selected>Projekt</option>
                 <option value="Megrendeles">Megrendelés</option>
-                <option value="Alkatresz" selected>Alkatrész</option>
+                <option value="Alkatresz">Alkatrész</option>
                 <option value="Raktar">Raktár</option>
             </select>
         </div>
@@ -100,7 +100,7 @@
                       </div>
                       <div class="mb-3">
                           <label for="meret" class="form-label">Méret</label>
-                          <input type="number" class="form-control" id="meret" placeholder="Rekeszenkénti max db">
+                          <input type="number" class="form-control" id="meret" placeholder="Alkatrész mérete">
                       </div>
                       <div class="mb-3">
                           <label for="keszlet" class="form-label">Készlet</label>
@@ -160,7 +160,7 @@
                   <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
               <div class="modal-body">
-                  <div class="row" id="missing_part_table">
+                  <div id="missing_part_table">
                       <div class="loader"></div>
                   </div>
               </div>
@@ -277,62 +277,13 @@
     let crates;
     let crate_places = [];
 
+    Show_Table();
     getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Alkatresz")
-        .then((data) => {
+        .then((data) =>
+        {
             parts = data;
-            document.getElementById("table").innerHTML = `
-                    <div class="row">
-                        <div class="col-1">
-                            ElemID
-                        </div>
-                        <div class="col-4">
-                            ElemNev
-                        </div>
-                        <div class="col-2">
-                            ElemAr
-                        </div>
-                        <div class="col-1">
-                            Meret
-                        </div>
-                        <div class="col-1">
-                            Keszlet
-                        </div>
-                        <div class="col-1">
-                            Lefoglalt Keszlet
-                        </div>
-                        <div class="col-2">
-                            Alkatresz Allapot
-                        </div>
-                    </div>
-                `;
-            for (let part in parts){
-                document.getElementById("table").innerHTML += `
-                    <div class="row">
-                        <div class="col-1">
-                            `+parts[part].elemId+`
-                        </div>
-                        <div class="col-4">
-                            `+parts[part].elemNev+`
-                        </div>
-                        <div class="col-2">
-                            `+parts[part].elemAr+`
-                        </div>
-                        <div class="col-1">
-                            `+parts[part].meret+`
-                        </div>
-                        <div class="col-1">
-                            `+parts[part].keszlet+`
-                        </div>
-                        <div class="col-1">
-                            `+parts[part].lefoglaltKeszlet+`
-                        </div>
-                        <div class="col-2">
-                            `+parts[part].alkatreszAllapot+`
-                        </div>
-                    </div>
-                `;
-            }
-        }).catch(() => {
+        }).catch(() =>
+        {
             location.replace('login.html');
         });
 
@@ -352,6 +303,7 @@
             referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
             body: JSON.stringify(data), // body data type must match "Content-Type" header
         });
+        Show_Table();
         return response.json(); // parses JSON response into native JavaScript objects
     }
 
@@ -391,15 +343,16 @@
             referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
             body: JSON.stringify(data),
         });
-        return response.json(); // parses JSON response into native JavaScript objects
+        Show_Table();
+        return response.text(); // parses JSON response into native JavaScript objects
     }
 
     function AddPart(){
         let array = {
-            "elemNev": document.getElementById("elem_nev").value,
-            "elemAr": document.getElementById("elem_ar").value,
-            "meret": document.getElementById("meret").value,
-            "keszlet": document.getElementById("keszlet").value,
+            "elemNev":          document.getElementById("elem_nev").value,
+            "elemAr":           document.getElementById("elem_ar").value,
+            "meret":            document.getElementById("meret").value,
+            "keszlet":          document.getElementById("keszlet").value,
             "alkatreszAllapot": document.getElementById("alkatresz_allapot").options[document.getElementById("alkatresz_allapot").selectedIndex].text,
         }
 
@@ -425,20 +378,19 @@
         $("#Part_Price_Modify").modal('toggle');
     }
     function fill_price(){
-        console.log(parts[document.getElementById("alkatresz_nev").selectedIndex]);
         document.getElementById("price").value = parts[document.getElementById("alkatresz_nev").selectedIndex].elemAr;
     }
     function Part_Price_Mod(){
         let array = {
-            "elemId": parts[document.getElementById("alkatresz_allapot").selectedIndex].elemId,
-            "elemNev": parts[document.getElementById("alkatresz_allapot").selectedIndex].elemNev,
+            "elemId": parts[document.getElementById("alkatresz_nev").selectedIndex].elemId,
+            "elemNev": parts[document.getElementById("alkatresz_nev").selectedIndex].elemNev,
             "elemAr": document.getElementById("price").value,
-            "meret": parts[document.getElementById("alkatresz_allapot").selectedIndex].meret,
-            "keszlet": parts[document.getElementById("alkatresz_allapot").selectedIndex].keszlet,
-            "lefoglaltKeszlet": parts[document.getElementById("alkatresz_allapot").selectedIndex].lefoglaltKeszlet,
-            "alkatreszAllapot": parts[document.getElementById("alkatresz_allapot").selectedIndex].alkatreszAllapot,
+            "meret": parts[document.getElementById("alkatresz_nev").selectedIndex].meret,
+            "keszlet": parts[document.getElementById("alkatresz_nev").selectedIndex].keszlet,
+            "lefoglaltKeszlet": parts[document.getElementById("alkatresz_nev").selectedIndex].lefoglaltKeszlet,
+            "alkatreszAllapot": parts[document.getElementById("alkatresz_nev").selectedIndex].alkatreszAllapot,
         };
-        putData('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Alkatresz/'+parts[document.getElementById("alkatresz_allapot").selectedIndex].elemId, array).then((data) =>
+        putData('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Alkatresz/'+parts[document.getElementById("alkatresz_nev").selectedIndex].elemId, array).then((data) =>
         {
             console.log(data);
             $("#Part_Price_Modify").modal('toggle');
@@ -446,44 +398,80 @@
     }
 
     function Missing_Part_Show(){
-        $('#Missing_parts').modal('toggle');
+        let db = 0;
         getData(" https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Megrendeles")
             .then((data) =>
             {
-                document.getElementById("missing_part_table").innerHTML = "";
-
-                for (let order in data){
-                    if ( data[order].szabadKeszlet-data[order].szuksegesKeszlet < 0 ) {
-                        document.getElementById("missing_part_table").innerHTML += `
+                document.getElementById("missing_part_table").innerHTML = `
                             <div class="row" class="mb-3">
-                                <div class="col-2">` + data[order].megrendelesId + `</div>
-                                <div class="col-2">` + data[order].elemId + `</div>
-                                <div class="col-8">` + data[order].szuksegesKeszlet-data[order].szabadKeszlet + `</div>
+                                <div class="col-3"> Megrendelés azonosító</div>
+                                <div class="col-3"> Elem azonosító </div>
+                                <div class="col-6"> Hiány (db) </div>
                             </div>
                         `;
+
+                for (let order in data) {
+                    // console.log(data[order]);
+                    if (data[order].foglalt == false) {
+                        if (parseInt(data[order].szuksegesKeszlet) - parseInt(data[order].elemDb) > 0) {
+                            document.getElementById("missing_part_table").innerHTML += `
+                            <div class="row" class="mb-3">
+                                <div class="col-3">` + data[order].megrendelesId + `</div>
+                                <div class="col-3">` + data[order].elemId + `</div>
+                                <div class="col-6">` + parseInt(data[order].szuksegesKeszlet) - parseInt(data[order].elemDb) + `</div>
+                            </div>
+                        `;
+                        }
+                        db++;
                     }
                 }
+
+
+                if (db == 0){
+                    document.getElementById("missing_part_table").innerHTML = `
+                            <div class="row" class="mb-3">
+                                <div class="col-12"> Nincs hiányzó alkatrész! </div>
+                            </div>
+                        `;
+                }
+                $('#Missing_parts').modal('toggle');
             });
     }
 
     function Missing_Ordered_Part_Show(){
-        $('#Missing_Ordered_parts').modal('toggle');
+        let db = 0;
         getData(" https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Megrendeles")
             .then((data) =>
             {
-                document.getElementById("missing_ordered_part_table").innerHTML = "";
+                document.getElementById("missing_ordered_part_table").innerHTML = `
+                            <div class="row" class="mb-3">
+                                <div class="col-3"> Megrendelés azonsító</div>
+                                <div class="col-3"> Elem azonsító </div>
+                                <div class="col-6"> Hiány (db) </div>
+                            </div>
+                        `;
 
                 for (let order in data){
                     if ( data[order].foglalt == true ) {
                         document.getElementById("missing_ordered_part_table").innerHTML += `
                             <div class="row" class="mb-3">
-                                <div class="col-2">` + data[order].megrendelesId + `</div>
-                                <div class="col-2">` + data[order].elemId + `</div>
-                                <div class="col-8">` + data[order].lefoglalandoKeszlet + `</div>
+                                <div class="col-3">` + data[order].megrendelesId + `</div>
+                                <div class="col-3">` + data[order].elemId + `</div>
+                                <div class="col-6">` + data[order].lefoglalandoKeszlet + `</div>
                             </div>
                         `;
                     }
                 }
+
+                if (db == 0){
+                    document.getElementById("missing_ordered_part_table").innerHTML = `
+                            <div class="row" class="mb-3">
+                                <div class="col-12"> Nincs hiányzó alkatrész! </div>
+                            </div>
+                        `;
+                }
+
+                $('#Missing_Ordered_parts').modal('toggle');
             });
     }
 
@@ -532,22 +520,22 @@
         }
     }
     function Add_Incoming_Parts(){
-        //rekeszID nem jó a gombból ha törlődik ,biztosabb megoldás kell
-
         let elem_id = parts[document.getElementById("part_name").selectedIndex].elemId;             //elemId
         let rekeszek = document.getElementById("crate_id").getElementsByClassName( 'btn-primary' ); //rekeszek amikben ez az alkatrész van
+        let dbszam = [];                                                                            //rekszek tartalma db számba
         let uj_alkatresz_db = document.getElementById("db").value;                                  //hány db új alkatrész
         let raktar = 0;                                                                             //összes rekesz mérete egyben
         for (let i=0;i<rekeszek.length;i++){
             raktar += crates[search_array(crates,rekeszek[i].innerHTML)].rekeszMeret;
+            dbszam.push(crates[search_array(crates,rekeszek[i].innerHTML)].tartalmazDb);
         }
-        let regi_alkatresz_db = document.getElementById("crate_size").innerHTML;                    //ennyi már van raktáron
         let alkatresz_meret = parts[document.getElementById("part_name").selectedIndex].meret;      //alkatrész mérete
 
         for (let i=0;i<rekeszek.length;i++){
             let elpakolt_db=0;
-            let elem_db = parseInt(crates[search_array(crates,rekeszek[i].innerHTML)].rekeszMeret / alkatresz_meret); //ennyi alkatrész fér bele a rekeszbe
-            if (uj_alkatresz_db - elem_db >= 0 ){
+            let elem_db = parseInt(parseInt(crates[search_array(crates,rekeszek[i].innerHTML)].rekeszMeret)/parseInt(alkatresz_meret)); //ennyi alkatrész fér bele a rekeszbe
+            let ures_hely = dbszam[i];
+            if (uj_alkatresz_db - (elem_db-ures_hely) >= 0 ){
                 elpakolt_db = elem_db;
                 uj_alkatresz_db -= elem_db;
             }else{
@@ -555,25 +543,22 @@
                 uj_alkatresz_db = 0;
             }
 
-            //ki kell venni majd
-            console.log("nincs töltés");
-            $("#Incoming_Parts").modal('toggle');
+            let array = {
+                "rekeszId":    crates[rekeszek[i].innerHTML-1].rekeszId,
+                "elemId":      crates[rekeszek[i].innerHTML-1].elemId,
+                "sor":         crates[rekeszek[i].innerHTML-1].sor,
+                "oszlop":      crates[rekeszek[i].innerHTML-1].oszlop,
+                "szint":       crates[rekeszek[i].innerHTML-1].szint,
+                "rekeszMeret": crates[rekeszek[i].innerHTML-1].rekeszMeret,
+                "elem":        crates[rekeszek[i].innerHTML-1].tartalmazDb*elpakolt_db,
+                "tartalmazDb": crates[rekeszek[i].innerHTML-1].tartalmazDb
+            };
 
-            // let array = {
-            //     "rekeszId":     crates[rekeszek[i].innerHTML-1].rekeszId,
-            //     "elemId":       crates[rekeszek[i].innerHTML-1].elemId,
-            //     "sor":          crates[rekeszek[i].innerHTML-1].sor,
-            //     "oszlop":       crates[rekeszek[i].innerHTML-1].oszlop,
-            //     "szint":        crates[rekeszek[i].innerHTML-1].szint,
-            //     "rekeszMeret":  crates[rekeszek[i].innerHTML-1].rekeszMeret,
-            //     "elem":         elpakolt_db,
-            // };
-
-            // putData('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Raktar/'+crates[rekeszek[i].innerHTML-1].rekeszId, array).then((data) =>
-            // {
-            //     console.log(data);
-            //     $("#Incoming_Parts").modal('toggle');
-            // });
+            putData('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Raktar/'+crates[rekeszek[i].innerHTML-1].rekeszId, array).then((data) =>
+            {
+                console.log(data);
+                $("#Incoming_Parts").modal('toggle');
+            });
         }
         if (uj_alkatresz_db>0){
             let a = {
@@ -596,24 +581,37 @@
             }
 
             let array = {
-                "elemId":       elem_id,
-                "sor":          a.sor,
-                "oszlop":       a.oszlop,
-                "szint":        a.szint,
-                "rekeszMeret":  uj_alkatresz_db*alkatresz_meret
+                "elemId":      elem_id,
+                "sor":         a.sor,
+                "oszlop":      a.oszlop,
+                "szint":       a.szint,
+                "rekeszMeret": uj_alkatresz_db*alkatresz_meret,
+                "tartalmazDb": uj_alkatresz_db
             };
 
             postData('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Raktar', array).then((data) =>
             {
                 console.log(data);
-                $("#Incoming_Parts").modal('toggle');
             });
         }
 
+        let array = {
+            "elemNev":          parts[document.getElementById("part_name").elemNev],
+            "elemAr":           parts[document.getElementById("part_name").elemAr],
+            "meret":            parts[document.getElementById("part_name").selectedIndex].meret,
+            "keszlet":          parts[document.getElementById("part_name").selectedIndex].keszlet*uj_alkatresz_db,
+            "alkatreszAllapot": parts[document.getElementById("part_name").selectedIndex].alkatreszAllapot,
+        }
+        putData('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Alkatresz/'+parts[document.getElementById("part_name").selectedIndex].elemId, array).then((data) =>
+        {
+            console.log(data);
+        });
+        $("#Incoming_Parts").modal('toggle');
     }
     function search_array(array,valuetofind) {
         for (let i = 0; i < array.length; i++) {
             if (parseInt(array[i]['rekeszId']) === parseInt(valuetofind)) {
+                // console.log(array[i]);
                 return i;
             }
         }
@@ -698,19 +696,19 @@
                         document.getElementById("table").innerHTML = `
                             <div class="row">
                                 <div class="col-1">
-                                    ProjektId
+                                    Projekt azonosító
                                 </div>
                                 <div class="col-2">
-                                    Allapot
+                                    Állapot
                                 </div>
                                 <div class="col-2">
-                                    MegrendelesId
+                                    Megrendelés azonosító
                                 </div>
                                 <div class="col-4">
-                                    Datum
+                                    Dátum
                                 </div>
                                 <div class="col-3">
-                                    Osszeg
+                                    Összeg
                                 </div>
                             </div>
                         `;
@@ -741,31 +739,28 @@
                         document.getElementById("table").innerHTML = `
                             <div class="row">
                                 <div class="col-1">
-                                    MegrendelesId
+                                    Megrendelés azonosító
                                 </div>
                                 <div class="col-1">
-                                    ElemId
+                                    Elem azonosító
                                 </div>
                                 <div class="col-1">
-                                    ElemDb
+                                    Elem db
                                 </div>
                                 <div class="col-2">
-                                    Szukseges Keszlet
+                                    Szükséges készlet
                                 </div>
                                 <div class="col-2">
-                                    Elofoglalt Keszlet
+                                    Előfoglalt készlet
                                 </div>
                                 <div class="col-1">
-                                    Szabad Keszlet
+                                    Szabad készlet
                                 </div>
                                 <div class="col-1">
                                     Foglalt
                                 </div>
-                                <div class="col-2">
-                                    Lefoglalando Keszlet
-                                </div>
-                                <div class="col-1">
-                                    Elem
+                                <div class="col-3">
+                                    Lefoglalandó készlet
                                 </div>
                             </div>
                         `;
@@ -793,11 +788,8 @@
                                 <div class="col-1">
                                     `+data[d].foglalt+`
                                 </div>
-                                <div class="col-2">
+                                <div class="col-3">
                                     `+data[d].lefoglalandoKeszlet+`
-                                </div>
-                                <div class="col-1">
-                                    `+data[d].elem+`
                                 </div>
                             </div>
                         `;
@@ -807,25 +799,25 @@
                         document.getElementById("table").innerHTML = `
                     <div class="row">
                         <div class="col-1">
-                            ElemID
+                            Elem azonosító
                         </div>
                         <div class="col-4">
-                            ElemNev
+                            Elem név
                         </div>
                         <div class="col-2">
-                            ElemAr
+                            Elem ár
                         </div>
                         <div class="col-1">
-                            Meret
+                            Méret
                         </div>
                         <div class="col-1">
-                            Keszlet
+                            Készlet
                         </div>
                         <div class="col-1">
-                            Lefoglalt Keszlet
+                            Lefoglalt készlet
                         </div>
                         <div class="col-2">
-                            Alkatresz Allapot
+                            Alkatrész Állapot
                         </div>
                     </div>
                 `;
@@ -861,22 +853,25 @@
                         document.getElementById("table").innerHTML = `
                             <div class="row">
                                 <div class="col-1">
-                                    rekeszId
+                                    Rekesz azonosíító
                                 </div>
                                 <div class="col-2">
-                                    elemId
+                                    Elem azonosító
                                 </div>
                                 <div class="col-2">
-                                    sor
+                                    Sor
                                 </div>
                                 <div class="col-2">
-                                    oszlop
+                                    Oszlop
                                 </div>
                                 <div class="col-2">
-                                    szint
+                                    Szint
                                 </div>
-                                <div class="col-3">
-                                    rekeszMeret
+                                <div class="col-2">
+                                    Rekesz méret
+                                </div>
+                                <div class="col-1">
+                                    Tartalom (db)
                                 </div>
                             </div>
                         `;
@@ -898,8 +893,11 @@
                                 <div class="col-2">
                                     `+data[d].szint+`
                                 </div>
-                                <div class="col-3">
+                                <div class="col-2">
                                     `+data[d].rekeszMeret+`
+                                </div>
+                                <div class="col-1">
+                                    `+data[d].tartalmazDb+`
                                 </div>
                             </div>
                         `;
@@ -908,6 +906,9 @@
                     default:
                         alert("Nincs ilyen tábla!");
                 }
+            }).catch(() =>
+            {
+                location.replace('login.html');
             });
     }
 
