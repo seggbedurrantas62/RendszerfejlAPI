@@ -60,6 +60,15 @@
                         <li class="nav-item">
                             <button class="border-0 btn-primary pe-1" onclick="Project_Time_Payment()">Becsült idő és pénz</button>
                         </li>
+                        <li class="nav-item">
+                            <button class="border-0 btn-primary pe-1" onclick="AddProject_Modal_Open()">Projekt hozzáadása</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="border-0 btn-primary pe-1" onclick="Project_Listing()">Projekt listázása</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="border-0 btn-primary pe-1" onclick="Part_Listing()">Alkatrészek listázása</button>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -95,7 +104,7 @@
                   <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
               <div class="modal-body">
-                  <form class="form-group" id="part_add-form" action="javascript:void(0)">
+                  <form class="form-group" action="javascript:void(0)">
                       <div class="mb-3">
                           <label for="elem_nev" class="form-label">Alkatrész neve</label>
                           <input type="text" class="form-control" id="elem_nev" placeholder="Alkatrész neve">
@@ -332,6 +341,101 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
                     <button onclick="Draft()" type="button" class="btn btn-primary">Hozzárendelés</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="Project_Add" tabindex="-1" aria-labelledby="Project_Add" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Projekt létrehozása</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form class="form-group" action="javascript:void(0)">
+                        <div class="mb-3">
+                            <label for="megrendID" class="form-label">MegrendelesId</label>
+                            <input type="number" class="form-control" id="megrendID" placeholder="Megrendelés ID">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
+                    <button onclick="AddProject()" type="button" class="btn btn-primary">Felvétel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="Project_Listing" tabindex="-1" aria-labelledby="Project_Listing" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Projektek listázása</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="container mt-1">
+                        <h1>Projektek listázása</h1>
+                        <!-- List of elements from API -->
+                        <div class="card">
+                            <div class="card-header">
+                                <table class="table table-bordered table-striped">
+                                    <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Állapot</th>
+                                        <th>Létrehozás ideje</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="tableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="Part_Listing" tabindex="-1" aria-labelledby="Part_Listing" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Alkatreszek listázása</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="container mt-1">
+
+                        <h1>Alkatrészek listázása</h1>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <table class="table table-bordered table-striped">
+                                    <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Név</th>
+                                        <th>Ár</th>
+                                        <th>Állapot</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="tableBody_parts">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
                 </div>
             </div>
         </div>
@@ -1104,6 +1208,73 @@
                 <div class="col-5"> `+projects[search_projektId(projects,document.getElementById("time_and_pay_id").options[document.getElementById("time_and_pay_id").selectedIndex].text)].osszeg+` </div>
             </div>
         `;
+    }
+
+    function AddProject_Modal_Open(){
+        $("#Project_Add").modal('toggle');
+    }
+    function AddProject(){
+        let array = {
+            "allapot": "New",
+            "megrendelesId": document.getElementById("megrendID").value
+        }
+
+
+        postData(" https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt", array)
+            .then(() =>
+            {
+                $("#Project_Add").modal('toggle');
+            })
+            .catch(error => console.log(error));
+    }
+
+    function Project_Listing(){
+        getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt").
+            then((data) => {
+            const tbody = document.getElementById('tableBody');
+            for (const item of data) {
+                const row = document.createElement('tr');
+                const idCell = document.createElement('td');
+                idCell.textContent = item.projektId;
+                row.appendChild(idCell);
+                const statusCell = document.createElement('td');
+                statusCell.textContent = item.allapot;
+                row.appendChild(statusCell);
+                const dateCell = document.createElement('td');
+                dateCell.textContent = item.datum;
+                row.appendChild(dateCell);
+                if(statusCell.textContent != "")
+                    tbody.appendChild(row);
+            }
+
+                $("#Project_Listing").modal('toggle');
+            });
+    }
+
+    function Part_Listing(){
+        getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Alkatresz").
+            then((data) => {
+                const tbody = document.getElementById('tableBody_parts');
+                for (const item of data) {
+                    const row = document.createElement('tr');
+                    const idCell = document.createElement('td');
+                    idCell.textContent = item.elemId;
+                    row.appendChild(idCell);
+                    const nameCell = document.createElement('td');
+                    nameCell.textContent = item.elemNev;
+                    row.appendChild(nameCell);
+                    const priceCell = document.createElement('td');
+                    priceCell.textContent = `${item.elemAr} Ft`;
+                    row.appendChild(priceCell);
+                    const stateCell = document.createElement('td');
+                    stateCell.textContent = item.alkatreszAllapot;
+                    row.appendChild(stateCell);
+                    tbody.appendChild(row);
+                }
+
+                $("#Part_Listing").modal('toggle');
+            })
+
     }
 
     function search_rekeszId(array,valuetofind) {
