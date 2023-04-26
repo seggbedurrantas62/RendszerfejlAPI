@@ -330,7 +330,7 @@
 
                         </select>
                     </div>
-                    <div class="row" class="mb-3">
+                    <div class="row mb-3">
                         <div class="col-7"> Idő </div>
                         <div class="col-5"> Összeg </div>
                     </div>
@@ -480,9 +480,28 @@
         return response.json(); // parses JSON response into native JavaScript objects
     }
 
+    async function postData_for_token(url = "", data = {}) {
+        // Default options are marked with *
+        const response = await fetch(url, {
+            method: "POST", // *GET, POST, PUT, DELETE, etc.
+            mode: "cors", // no-cors, *cors, same-origin
+            cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+            credentials: "same-origin", // include, *same-origin, omit
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + sessionStorage.getItem("token")
+                // 'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            redirect: "follow", // manual, *follow, error
+            referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+            body: JSON.stringify(data), // body data type must match "Content-Type" header
+        });
+        // Show_Table();
+        return response.text(); // parses JSON response into native JavaScript objects
+    }
+
     async function getData(url = "") {
         // Default options are marked with *
-
         const response = await fetch(url, {
             method: "GET", // *GET, POST, PUT, DELETE, etc.
             mode: "cors", // no-cors, *cors, same-origin
@@ -501,7 +520,6 @@
 
     async function putData(url = "", data = {}) {
         // Default options are marked with *
-
         const response = await fetch(url, {
             method: "PUT", // *GET, POST, PUT, DELETE, etc.
             mode: "cors", // no-cors, *cors, same-origin
@@ -520,22 +538,40 @@
         return response.text(); // parses JSON response into native JavaScript objects
     }
 
+    function token_refresh(){
+        let array = {
+            "username": sessionStorage.getItem("username"),
+            "password": sessionStorage.getItem("password")
+        };
+
+        postData_for_token('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Authenticate', array)
+            .then((data) =>
+            {
+                if ( data !== 'Invalid credentials'){
+                    sessionStorage.setItem("token", data);
+                }else{
+                    location.replace('login.html');
+                }
+                console.log("lefutott");
+            });
+    }
+
     function AddPart(){
         let array = {
             "elemNev":          document.getElementById("elem_nev").value,
             "elemAr":           document.getElementById("elem_ar").value,
             "meret":            document.getElementById("meret").value,
             "keszlet":          document.getElementById("keszlet").value,
-            "alkatreszAllapot": document.getElementById("alkatresz_allapot").options[document.getElementById("alkatresz_allapot").selectedIndex].text,
+            "alkatreszAllapot": document.getElementById("alkatresz_allapot").options[document.getElementById("alkatresz_allapot").selectedIndex].value,
         }
 
         console.log(array);
 
         postData(" https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Alkatresz", array)
             .then(() =>
-        {
-            $("#Part_Add").modal('toggle');
-        });
+            {
+                $("#Part_Add").modal('toggle');
+            });
     }
 
     function Part_Price_Mod_Open(){
@@ -578,7 +614,7 @@
             .then((data) =>
             {
                 document.getElementById("missing_part_table").innerHTML = `
-                            <div class="row" class="mb-3">
+                            <div class="row mb-3">
                                 <div class="col-3"> Megrendelés azonosító</div>
                                 <div class="col-3"> Elem azonosító </div>
                                 <div class="col-6"> Hiány (db) </div>
@@ -587,7 +623,7 @@
 
                 for (let order in data) {
                     // console.log(data[order]);
-                    if (data[order].foglalt == false) {
+                    if (data[order].foglalt === false) {
                         if (parseInt(data[order].szuksegesKeszlet) - parseInt(data[order].elemDb) > 0) {
                             document.getElementById("missing_part_table").innerHTML += `
                             <div class="row" class="mb-3">
@@ -602,9 +638,9 @@
                 }
 
 
-                if (db == 0){
+                if (db === 0){
                     document.getElementById("missing_part_table").innerHTML = `
-                            <div class="row" class="mb-3">
+                            <div class="row mb-3">
                                 <div class="col-12"> Nincs hiányzó alkatrész! </div>
                             </div>
                         `;
@@ -619,29 +655,29 @@
             .then((data) =>
             {
                 document.getElementById("missing_ordered_part_table").innerHTML = `
-                            <div class="row" class="mb-3">
-                                <div class="col-3"> Megrendelés azonsító</div>
-                                <div class="col-3"> Elem azonsító </div>
-                                <div class="col-6"> Hiány (db) </div>
+                            <div class="row mb-3">
+                                <div class="col-4"> Megrendelés azonsító</div>
+                                <div class="col-4"> Elem azonsító </div>
+                                <div class="col-4"> Hiány (db) </div>
                             </div>
                         `;
 
                 for (let order in data){
-                    if ( data[order].foglalt == true ) {
+                    if ( data[order].foglalt === true ) {
                         document.getElementById("missing_ordered_part_table").innerHTML += `
                             <div class="row" class="mb-3">
-                                <div class="col-3">` + data[order].megrendelesId + `</div>
-                                <div class="col-3">` + data[order].elemId + `</div>
-                                <div class="col-6">` + data[order].lefoglalandoKeszlet + `</div>
+                                <div class="col-4">` + data[order].megrendelesId + `</div>
+                                <div class="col-4">` + data[order].elemId + `</div>
+                                <div class="col-4">` + data[order].lefoglalandoKeszlet + `</div>
                             </div>
                         `;
                         db++;
                     }
                 }
 
-                if (db == 0){
+                if (db === 0){
                     document.getElementById("missing_ordered_part_table").innerHTML = `
-                            <div class="row" class="mb-3">
+                            <div class="row mb-3">
                                 <div class="col-12"> Nincs hiányzó alkatrész! </div>
                             </div>
                         `;
@@ -668,7 +704,7 @@
     function empty_crate(){
         let is_crate = false;
         for (let crate in crates){
-            if (crates[crate].elemId == parts[document.getElementById("part_name").selectedIndex].elemId){
+            if (crates[crate].elemId === parts[document.getElementById("part_name").selectedIndex].elemId){
                 if ( is_crate ){
                     document.getElementById("crate_id").innerHTML += '<button class="btn-primary pe-1 border rounded" onclick="(function (){document.getElementById(`crate_size_full`).innerHTML = crates['+crate+'].rekeszMeret;})();">'+crates[crate].rekeszId+'</button>';
                     document.getElementById("crate_size_full").innerHTML = parseInt(document.getElementById("crate_size_full").innerText) + parseInt(crates[crate].rekeszMeret);
@@ -875,7 +911,7 @@
         // console.log(crates[document.getElementById("rekeszId").selectedIndex]);
         document.getElementById("size").value = crates[document.getElementById("rekeszId").selectedIndex].rekeszMeret;
         for (let part in parts){
-            if (parts[part].elemId == crates[document.getElementById("rekeszId").selectedIndex].elemId){
+            if (parts[part].elemId === crates[document.getElementById("rekeszId").selectedIndex].elemId){
                 document.getElementById("crate_size-elem_nev").innerHTML= parts[part].elemNev;
             }
         }
@@ -1145,7 +1181,7 @@
     function Draft_fill(){
         document.getElementById("orderId").innerHTML = "";
         for (let i=0;i<projects.length;i++){
-            if ( parseInt(projects[i].megrendelesId) ==  parseInt(projects[search_projektId(projects,document.getElementById("projektId").options[document.getElementById("projektId").selectedIndex].text)].megrendelesId))
+            if ( parseInt(projects[i].megrendelesId) ===  parseInt(projects[search_projektId(projects,document.getElementById("projektId").options[document.getElementById("projektId").selectedIndex].text)].megrendelesId))
                 document.getElementById("orderId").innerHTML += '<option>' + projects[search_projektId(projects,document.getElementById("projektId").options[document.getElementById("projektId").selectedIndex].text)].megrendelesId + '</option>';
         }
 
@@ -1243,7 +1279,7 @@
                 const dateCell = document.createElement('td');
                 dateCell.textContent = item.datum;
                 row.appendChild(dateCell);
-                if(statusCell.textContent != "")
+                if(statusCell.textContent !== "")
                     tbody.appendChild(row);
             }
 
@@ -1313,4 +1349,6 @@
         }
         return -1;
     }
+
+    document.getElementById("navbarNav").onclick = token_refresh();
 </script>
