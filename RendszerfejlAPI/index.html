@@ -54,6 +54,12 @@
                         <li class="nav-item">
                             <button class="border-0 btn-primary pe-1" onclick="Crate_Max_Number_Modify()">Rekesz kezelés</button>
                         </li>
+                        <li class="nav-item">
+                            <button class="border-0 btn-primary pe-1" onclick="Project_Draft()">Projekthez rendelés</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="border-0 btn-primary pe-1" onclick="Project_Time_Payment()">Becsült idő és pénz</button>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -269,12 +275,75 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade" id="Project_draft_modal" tabindex="-1" aria-labelledby="Project_draft_modal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Alkatrész hozzárendelése a projekthez</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form class="form-group" id="Project_draft_form" action="javascript:void(0)">
+                        <div class="mb-3">
+                            <label for="projektId" class="form-label">Projekt</label>
+                            <select onchange="Draft_fill()" class="form-control" id="projektId">
+
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="orderId" class="form-label">Megrendelés</label>
+                            <select class="form-control" id="orderId">
+
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
+                    <button onclick="Draft()" type="button" class="btn btn-primary">Hozzárendelés</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="Project_timeandpay_modal" tabindex="-1" aria-labelledby="Project_timeandpay_modal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Projekt ideje és költsége</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="time_and_pay_id" class="form-label">Projekt azonosítója</label>
+                        <select onchange="project_switch()" class="form-control" id="time_and_pay_id">
+
+                        </select>
+                    </div>
+                    <div class="row" class="mb-3">
+                        <div class="col-7"> Idő </div>
+                        <div class="col-5"> Összeg </div>
+                    </div>
+                    <div id="time_and_pay_body">
+
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
+                    <button onclick="Draft()" type="button" class="btn btn-primary">Hozzárendelés</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
 
 <script>
     let parts;
     let crates;
+    let projects;
+    let orders;
     let crate_places = [];
 
     Show_Table();
@@ -529,17 +598,17 @@
         let uj_alkatresz_db = document.getElementById("db").value;                                  //hány db új alkatrész
         let raktar = 0;                                                                             //összes rekesz mérete egyben
         for (let i=0;i<rekeszek.length;i++){
-            raktar += crates[search_array(crates,rekeszek[i].innerHTML)].rekeszMeret;
-            dbszam.push(crates[search_array(crates,rekeszek[i].innerHTML)].tartalmazDb);
+            raktar += crates[search_rekeszId(crates,rekeszek[i].innerHTML)].rekeszMeret;
+            dbszam.push(crates[search_rekeszId(crates,rekeszek[i].innerHTML)].tartalmazDb);
         }
         let alkatresz_meret = parts[document.getElementById("part_name").selectedIndex].meret;      //alkatrész mérete
 
         // console.log(crates);
         for (let i=0;i<rekeszek.length;i++){
             let elpakolt_db=0;
-            // console.log(parseInt(crates[search_array(crates,rekeszek[i].innerHTML)].rekeszMeret));
+            // console.log(parseInt(crates[search_rekeszId(crates,rekeszek[i].innerHTML)].rekeszMeret));
             // console.log(parseInt(alkatresz_meret));
-            let elem_db = parseInt(parseInt(crates[search_array(crates,rekeszek[i].innerHTML)].rekeszMeret)/parseInt(alkatresz_meret)); //összesen ennyi alkatrész fér bele a rekeszbe
+            let elem_db = parseInt(parseInt(crates[search_rekeszId(crates,rekeszek[i].innerHTML)].rekeszMeret)/parseInt(alkatresz_meret)); //összesen ennyi alkatrész fér bele a rekeszbe
             // console.log(elem_db);
             let ures_hely = dbszam[i]; // ennyi már van benne
             // console.log(ures_hely);
@@ -553,13 +622,13 @@
                     uj_alkatresz_db = 0;
 
                     array = {
-                        "rekeszId":    crates[search_array(crates,rekeszek[i].innerHTML)].rekeszId,
-                        "elemId":      crates[search_array(crates,rekeszek[i].innerHTML)].elemId,
-                        "sor":         crates[search_array(crates,rekeszek[i].innerHTML)].sor,
-                        "oszlop":      crates[search_array(crates,rekeszek[i].innerHTML)].oszlop,
-                        "szint":       crates[search_array(crates,rekeszek[i].innerHTML)].szint,
-                        "rekeszMeret": crates[search_array(crates,rekeszek[i].innerHTML)].rekeszMeret,
-                        "tartalmazDb": crates[search_array(crates,rekeszek[i].innerHTML)].tartalmazDb + parseInt(elpakolt_db)
+                        "rekeszId":    crates[search_rekeszId(crates,rekeszek[i].innerHTML)].rekeszId,
+                        "elemId":      crates[search_rekeszId(crates,rekeszek[i].innerHTML)].elemId,
+                        "sor":         crates[search_rekeszId(crates,rekeszek[i].innerHTML)].sor,
+                        "oszlop":      crates[search_rekeszId(crates,rekeszek[i].innerHTML)].oszlop,
+                        "szint":       crates[search_rekeszId(crates,rekeszek[i].innerHTML)].szint,
+                        "rekeszMeret": crates[search_rekeszId(crates,rekeszek[i].innerHTML)].rekeszMeret,
+                        "tartalmazDb": crates[search_rekeszId(crates,rekeszek[i].innerHTML)].tartalmazDb + parseInt(elpakolt_db)
                     };
 
                     console.log(array);
@@ -569,24 +638,24 @@
                     uj_alkatresz_db -= elpakolt_db;
 
                     array = {
-                        "rekeszId":    crates[search_array(crates,rekeszek[i].innerHTML)].rekeszId,
-                        "elemId":      crates[search_array(crates,rekeszek[i].innerHTML)].elemId,
-                        "sor":         crates[search_array(crates,rekeszek[i].innerHTML)].sor,
-                        "oszlop":      crates[search_array(crates,rekeszek[i].innerHTML)].oszlop,
-                        "szint":       crates[search_array(crates,rekeszek[i].innerHTML)].szint,
-                        "rekeszMeret": crates[search_array(crates,rekeszek[i].innerHTML)].rekeszMeret,
+                        "rekeszId":    crates[search_rekeszId(crates,rekeszek[i].innerHTML)].rekeszId,
+                        "elemId":      crates[search_rekeszId(crates,rekeszek[i].innerHTML)].elemId,
+                        "sor":         crates[search_rekeszId(crates,rekeszek[i].innerHTML)].sor,
+                        "oszlop":      crates[search_rekeszId(crates,rekeszek[i].innerHTML)].oszlop,
+                        "szint":       crates[search_rekeszId(crates,rekeszek[i].innerHTML)].szint,
+                        "rekeszMeret": crates[search_rekeszId(crates,rekeszek[i].innerHTML)].rekeszMeret,
                         "tartalmazDb": elem_db
                     };
 
                     console.log(array);
                 }
 
-                putData('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Raktar/'+crates[search_array(crates,rekeszek[i].innerHTML)].rekeszId, array).then((data) =>
+                putData('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Raktar/'+crates[search_rekeszId(crates,rekeszek[i].innerHTML)].rekeszId, array).then((data) =>
                 {
                     console.log(data);
                 });
             }else {
-                console.log( crates[search_array(crates,rekeszek[i].innerHTML)].rekeszId + " tele van.");
+                console.log( crates[search_rekeszId(crates,rekeszek[i].innerHTML)].rekeszId + " tele van.");
             }
 
         }
@@ -642,15 +711,6 @@
             console.log(data);
         });
         $("#Incoming_Parts").modal('toggle');
-    }
-    function search_array(array,valuetofind) {
-        for (let i = 0; i < array.length; i++) {
-            if (parseInt(array[i]['rekeszId']) === parseInt(valuetofind)) {
-                // console.log(array[i]);
-                return i;
-            }
-        }
-        return -1;
     }
     function crate_place_check(place={}){
         let all_ok = true;
@@ -960,5 +1020,126 @@
             });
     }
 
+    function Project_Draft(){
+        getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt").
+        then((data) =>
+        {
+            document.getElementById("projektId").innerHTML = "";
+            projects = data;
+            for (let i=0;i<data.length;i++){
+                document.getElementById("projektId").innerHTML += '<option>' + data[i].projektId + '</option>';
+            }
+            getData(" https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Megrendeles").
+            then((order_data) =>
+            {
+                orders = order_data;
+                Draft_fill();
+            });
+        });
+        $("#Project_draft_modal").modal('toggle');
+    }
+    function Draft_fill(){
+        document.getElementById("orderId").innerHTML = "";
+        for (let i=0;i<projects.length;i++){
+            if ( parseInt(projects[i].megrendelesId) ==  parseInt(projects[search_projektId(projects,document.getElementById("projektId").options[document.getElementById("projektId").selectedIndex].text)].megrendelesId))
+                document.getElementById("orderId").innerHTML += '<option>' + projects[search_projektId(projects,document.getElementById("projektId").options[document.getElementById("projektId").selectedIndex].text)].megrendelesId + '</option>';
+        }
 
+    }
+    function Draft(){
+        let array = {
+            "megrendelesId":    document.getElementById("orderId").options[document.getElementById("orderId").selectedIndex].text,
+            "elemId":           orders[search_orderID(orders,document.getElementById("orderId").options[document.getElementById("orderId").selectedIndex].text)].elemId,
+            "elemDb":           orders[search_orderID(orders,document.getElementById("orderId").options[document.getElementById("orderId").selectedIndex].text)].szuksegesKeszlet,
+            "szuksegesKeszlet": orders[search_orderID(orders,document.getElementById("orderId").options[document.getElementById("orderId").selectedIndex].text)].szuksegesKeszlet,
+            "foglalt":          orders[search_orderID(orders,document.getElementById("orderId").options[document.getElementById("orderId").selectedIndex].text)].foglalt,
+        }
+
+        let proj_pos = search_orderID(orders,document.getElementById("orderId").options[document.getElementById("orderId").selectedIndex].text);
+        let elem_pos = search_elemId(parts,orders[proj_pos].elemId);
+        let lefoglalt_alkatresz = orders[search_orderID(orders,document.getElementById("orderId").options[document.getElementById("orderId").selectedIndex].text)].szuksegesKeszlet - orders[search_orderID(orders,document.getElementById("orderId").options[document.getElementById("orderId").selectedIndex].text)].elemDb;
+        let alkatresz_array = {
+            "elemId":           parts[elem_pos].elemId,
+            "elemNev":          parts[elem_pos].elemNev,
+            "elemAr":           parts[elem_pos].elemAr,
+            "meret":            parts[elem_pos].meret,
+            "keszlet":          parts[elem_pos].keszlet - lefoglalt_alkatresz,
+            "lefoglaltKeszlet": parts[elem_pos].lefoglaltKeszlet,
+            "alkatreszAllapot": parts[elem_pos].alkatreszAllapot,
+        };
+
+        putData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Megrendeles/"+document.getElementById("orderId").options[document.getElementById("orderId").selectedIndex].text,array).
+        then((data) =>
+        {
+            putData('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Alkatresz/'+parts[elem_pos].elemId, alkatresz_array).then((data) =>
+            {
+                console.log(data);
+            });
+
+            console.log(data);
+            $("#Project_draft_modal").modal('toggle');
+        });
+    }
+
+    function Project_Time_Payment(){
+        getData(" https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt")
+            .then((data) => {
+
+                document.getElementById("time_and_pay_id").innerHTML = "";
+                projects = data;
+                for (let i=0;i<data.length;i++){
+                    document.getElementById("time_and_pay_id").innerHTML += '<option>' + data[i].projektId + '</option>';
+                }
+
+                document.getElementById("time_and_pay_body").innerHTML = "";
+
+                $("#Project_timeandpay_modal").modal('toggle');
+            });
+    }
+    function project_switch(){
+        document.getElementById("time_and_pay_body").innerHTML = "";
+        document.getElementById("time_and_pay_body").innerHTML = `
+            <div class="row" class="mb-3">
+                <div class="col-7"> `+projects[search_projektId(projects,document.getElementById("time_and_pay_id").options[document.getElementById("time_and_pay_id").selectedIndex].text)].datum+` </div>
+                <div class="col-5"> `+projects[search_projektId(projects,document.getElementById("time_and_pay_id").options[document.getElementById("time_and_pay_id").selectedIndex].text)].osszeg+` </div>
+            </div>
+        `;
+    }
+
+    function search_rekeszId(array,valuetofind) {
+        for (let i = 0; i < array.length; i++) {
+            if (parseInt(array[i]['rekeszId']) === parseInt(valuetofind)) {
+                // console.log(array[i]);
+                return i;
+            }
+        }
+        return -1;
+    }
+    function search_projektId(array,valuetofind) {
+        for (let i = 0; i < array.length; i++) {
+            if (parseInt(array[i]['projektId']) === parseInt(valuetofind)) {
+                // console.log(array[i]);
+                return i;
+            }
+        }
+        return -1;
+    }
+    function search_orderID(array,valuetofind) {
+        for (let i = 0; i < array.length; i++) {
+            if (parseInt(array[i]['megrendelesId']) === parseInt(valuetofind)) {
+                // console.log(array[i]);
+                return i;
+            }
+        }
+        return -1;
+    }
+    function search_elemId(array,valuetofind) {
+        for (let i = 0; i < array.length; i++) {
+            if (parseInt(array[i]['elemId']) === parseInt(valuetofind)) {
+                // console.log(array[i]);
+                return i;
+            }
+        }
+        return -1;
+    }
 </script>
