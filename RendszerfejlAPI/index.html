@@ -356,6 +356,8 @@
             "alkatreszAllapot": document.getElementById("alkatresz_allapot").options[document.getElementById("alkatresz_allapot").selectedIndex].text,
         }
 
+        console.log(array);
+
         postData(" https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Alkatresz", array)
             .then(() =>
         {
@@ -460,6 +462,7 @@
                                 <div class="col-6">` + data[order].lefoglalandoKeszlet + `</div>
                             </div>
                         `;
+                        db++;
                     }
                 }
 
@@ -531,34 +534,61 @@
         }
         let alkatresz_meret = parts[document.getElementById("part_name").selectedIndex].meret;      //alkatrész mérete
 
+        // console.log(crates);
         for (let i=0;i<rekeszek.length;i++){
             let elpakolt_db=0;
-            let elem_db = parseInt(parseInt(crates[search_array(crates,rekeszek[i].innerHTML)].rekeszMeret)/parseInt(alkatresz_meret)); //ennyi alkatrész fér bele a rekeszbe
-            let ures_hely = dbszam[i];
-            if (uj_alkatresz_db - (elem_db-ures_hely) >= 0 ){
-                elpakolt_db = elem_db;
-                uj_alkatresz_db -= elem_db;
-            }else{
-                elpakolt_db = uj_alkatresz_db;
-                uj_alkatresz_db = 0;
+            // console.log(parseInt(crates[search_array(crates,rekeszek[i].innerHTML)].rekeszMeret));
+            // console.log(parseInt(alkatresz_meret));
+            let elem_db = parseInt(parseInt(crates[search_array(crates,rekeszek[i].innerHTML)].rekeszMeret)/parseInt(alkatresz_meret)); //összesen ennyi alkatrész fér bele a rekeszbe
+            // console.log(elem_db);
+            let ures_hely = dbszam[i]; // ennyi már van benne
+            // console.log(ures_hely);
+
+            if ( (elem_db-ures_hely) >= 0 ){
+                let array;
+
+                elpakolt_db = (elem_db-ures_hely);
+                if (uj_alkatresz_db<=elpakolt_db){
+                    elpakolt_db = uj_alkatresz_db;
+                    uj_alkatresz_db = 0;
+
+                    array = {
+                        "rekeszId":    crates[search_array(crates,rekeszek[i].innerHTML)].rekeszId,
+                        "elemId":      crates[search_array(crates,rekeszek[i].innerHTML)].elemId,
+                        "sor":         crates[search_array(crates,rekeszek[i].innerHTML)].sor,
+                        "oszlop":      crates[search_array(crates,rekeszek[i].innerHTML)].oszlop,
+                        "szint":       crates[search_array(crates,rekeszek[i].innerHTML)].szint,
+                        "rekeszMeret": crates[search_array(crates,rekeszek[i].innerHTML)].rekeszMeret,
+                        "tartalmazDb": crates[search_array(crates,rekeszek[i].innerHTML)].tartalmazDb + parseInt(elpakolt_db)
+                    };
+
+                    console.log(array);
+
+                }else{
+
+                    uj_alkatresz_db -= elpakolt_db;
+
+                    array = {
+                        "rekeszId":    crates[search_array(crates,rekeszek[i].innerHTML)].rekeszId,
+                        "elemId":      crates[search_array(crates,rekeszek[i].innerHTML)].elemId,
+                        "sor":         crates[search_array(crates,rekeszek[i].innerHTML)].sor,
+                        "oszlop":      crates[search_array(crates,rekeszek[i].innerHTML)].oszlop,
+                        "szint":       crates[search_array(crates,rekeszek[i].innerHTML)].szint,
+                        "rekeszMeret": crates[search_array(crates,rekeszek[i].innerHTML)].rekeszMeret,
+                        "tartalmazDb": elem_db
+                    };
+
+                    console.log(array);
+                }
+
+                putData('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Raktar/'+crates[search_array(crates,rekeszek[i].innerHTML)].rekeszId, array).then((data) =>
+                {
+                    console.log(data);
+                });
+            }else {
+                console.log( crates[search_array(crates,rekeszek[i].innerHTML)].rekeszId + " tele van.");
             }
 
-            let array = {
-                "rekeszId":    crates[rekeszek[i].innerHTML-1].rekeszId,
-                "elemId":      crates[rekeszek[i].innerHTML-1].elemId,
-                "sor":         crates[rekeszek[i].innerHTML-1].sor,
-                "oszlop":      crates[rekeszek[i].innerHTML-1].oszlop,
-                "szint":       crates[rekeszek[i].innerHTML-1].szint,
-                "rekeszMeret": crates[rekeszek[i].innerHTML-1].rekeszMeret,
-                "elem":        crates[rekeszek[i].innerHTML-1].tartalmazDb*elpakolt_db,
-                "tartalmazDb": crates[rekeszek[i].innerHTML-1].tartalmazDb
-            };
-
-            putData('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Raktar/'+crates[rekeszek[i].innerHTML-1].rekeszId, array).then((data) =>
-            {
-                console.log(data);
-                $("#Incoming_Parts").modal('toggle');
-            });
         }
         if (uj_alkatresz_db>0){
             let a = {
@@ -569,15 +599,18 @@
 
             let ok=true;
             for (let i=0;i<crate_places.length;i++){
-                if ( JSON.stringify(a) === JSON.stringify(crate_places[i]) ){
+                let check_place = {
+                    sor:    crate_places[i].sor,
+                    oszlop: crate_places[i].oszlop,
+                    szint:  crate_places[i].szint
+                }
+                if ( JSON.stringify(a) === JSON.stringify(check_place) ){
                     ok=false;
                     break;
                 }
             }
             if (!ok){
                 a = crate_place_check(a);
-
-                console.log(a);
             }
 
             let array = {
@@ -595,14 +628,16 @@
             });
         }
 
-        let array = {
-            "elemNev":          parts[document.getElementById("part_name").elemNev],
-            "elemAr":           parts[document.getElementById("part_name").elemAr],
+        let alkatresz = {
+            "elemId":           parts[document.getElementById("part_name").selectedIndex].elemId,
+            "elemNev":          parts[document.getElementById("part_name").selectedIndex].elemNev,
+            "elemAr":           parts[document.getElementById("part_name").selectedIndex].elemAr,
             "meret":            parts[document.getElementById("part_name").selectedIndex].meret,
-            "keszlet":          parts[document.getElementById("part_name").selectedIndex].keszlet*uj_alkatresz_db,
+            "keszlet":          parts[document.getElementById("part_name").selectedIndex].keszlet + parseInt(document.getElementById("db").value),
             "alkatreszAllapot": parts[document.getElementById("part_name").selectedIndex].alkatreszAllapot,
         }
-        putData('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Alkatresz/'+parts[document.getElementById("part_name").selectedIndex].elemId, array).then((data) =>
+
+        putData('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Alkatresz/'+parts[document.getElementById("part_name").selectedIndex].elemId, alkatresz).then((data) =>
         {
             console.log(data);
         });
@@ -621,27 +656,40 @@
         let all_ok = true;
 
         while ( all_ok ){
-            place.sor = parseInt(place.sor) + 1;
-        loop1:
-            for (let i=0;i<crate_places.length;i++){
-                if (JSON.stringify(place) === JSON.stringify(crate_places[i])){
-                    place.oszlop = parseInt(place.oszlop) + 1;
-                    for (let j=0;j<crate_places.length;j++){
-                        if (JSON.stringify(place) === JSON.stringify(crate_places[j])){
-                            place.szint = parseInt(place.szint) + 1;
-                            for (let k=0;k<crate_places.length;k++){
-                                if (JSON.stringify(place) === JSON.stringify(crate_places[k])){
-                                    all_ok = true;
-                                    break loop1;
-                                }
-                                all_ok=false;
-                            }
-                        }
-                    }
-                }
-            }
-            all_ok = false;
 
+            for (let i=0;i<crate_places.length;i++) {
+                let check_place = {
+                    sor:    crate_places[i].sor,
+                    oszlop: crate_places[i].oszlop,
+                    szint:  crate_places[i].szint
+                }
+
+                if ( place.sor < 50){
+                    if (JSON.stringify(place) === JSON.stringify(check_place)){
+                        place.sor = parseInt(place.sor) + 1;
+                    }else{
+                        all_ok = false;
+                    }
+                }else if (place.oszlop < 50){
+                    place.sor = 1;
+                    if (JSON.stringify(place) === JSON.stringify(check_place)){
+                        place.oszlop = parseInt(place.oszlop) + 1;
+                    }else{
+                        all_ok = false;
+                    }
+                }else if(place.szint < 5){
+                    place.sor = 1;
+                    place.oszlop = 1;
+                    if (JSON.stringify(place) === JSON.stringify(check_place)){
+                        place.szint = parseInt(place.szint) + 1;
+                    }else{
+                        all_ok = false;
+                    }
+                }else{
+                    all_ok = true;
+                }
+
+            }
         }
         return place;
     }
@@ -676,7 +724,7 @@
             "oszlop": crates[document.getElementById("rekeszId").selectedIndex].oszlop,
             "szint": crates[document.getElementById("rekeszId").selectedIndex].szint,
             "rekeszMeret": document.getElementById("size").value,
-            "elem": crates[document.getElementById("rekeszId").selectedIndex].elem,
+            "tartalmazDb": crates[document.getElementById("rekeszId").selectedIndex].tartalmazDb,
         };
         putData('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Raktar/'+crates[document.getElementById("rekeszId").selectedIndex].rekeszId, array).then((data) =>
         {

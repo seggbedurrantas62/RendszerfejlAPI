@@ -54,15 +54,19 @@
     </div>
 </div>
 
-<div class="modal" id="staticBackdrop" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+<div class="modal" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="staticBackdropLabel">Ellenőrzés</h5>
             </div>
-            <div class="modal-body text-center">
+            <div id="loader_body" class="modal-body text-center">
                 <div class="loader text-center"></div>
             </div>
+            <div class="modal-footer text-center" style="display: block">
+                <button id="close_btn" type="button" class="btn btn-secondary d-none" data-bs-target="#staticBackdrop" aria-label="Close" data-bs-dismiss="modal">Újra</button>
+            </div>
+
         </div>
     </div>
 </div>
@@ -95,6 +99,8 @@
     function on_Submit(){
         document.getElementById("modal_open").click();
         document.getElementById("submit_btn").classList.add("disabled");
+        document.getElementById("close_btn").classList.add("d-none");
+        document.getElementById("loader_body").innerHTML = '<div class="loader text-center"></div>';
 
         let username = document.getElementById("Login").value;
         let password = document.getElementById("Password").value
@@ -112,6 +118,8 @@
 
                     location.replace('index.html');
                 }else{
+                    document.getElementById("loader_body").innerHTML = "Rossz felhasználónév vagy jelszó!";
+                    document.getElementById("close_btn").classList.remove("d-none");
                     document.getElementById("wrong").innerText = "Rossz felhasználónév vagy jelszó!";
                     document.getElementById("wrong").classList.add("text-danger");
 
