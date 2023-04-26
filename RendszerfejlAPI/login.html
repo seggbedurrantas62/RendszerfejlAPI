@@ -115,6 +115,8 @@
                 document.getElementById("modal_close").click();
                 if ( data != 'Invalid credentials'){
                     sessionStorage.setItem("token", data);
+                    sessionStorage.setItem("username", username);
+                    sessionStorage.setItem("password", password);
 
                     location.replace('index.html');
                 }else{
