@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Projektek</title>
+	<!-- Load Bootstrap stylesheet -->
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <button data-bs-toggle="modal" data-bs-target="#Fin_Project">Projekt befejezése</button>
+	<div class="modal fade" id="Fin_Project" tabindex="-1" aria-labelledby="Fin_Project" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Projekt befejezése</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form class="form-group" id="part_add-form" action="javascript:void(0)">
+                        <div class="mb-3">
+                            <label for="projektID" class="form-label">Projekt ID</label>
+                            <input type="number" class="form-control" id="projektID" placeholder="Projekt ID">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
+                    <button onclick="finishProject()" type="button" class="btn btn-primary">Befejezés</button>
+                </div>
+            </div>
+        </div>
+    </div>
+	
+	<!-- API call -->
+	<script>
+        async function getData(url = "") {
+        bool_user_command = true;
+        // Default options are marked with *
+        const response = await fetch(url, {
+            method: "GET", // *GET, POST, PUT, DELETE, etc.
+            mode: "cors", // no-cors, *cors, same-origin
+            cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+            credentials: "same-origin", // include, *same-origin, omit
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + sessionStorage.getItem("token")
+                // 'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            redirect: "follow", // manual, *follow, error
+            referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+        });
+        return response.json(); // parses JSON response into native JavaScript objects
+    }
+
+        async function putData(url = "", data = {}) {
+        bool_user_command = true;
+        // Default options are marked with *
+        const response = await fetch(url, {
+            method: "PUT", // *GET, POST, PUT, DELETE, etc.
+            mode: "cors", // no-cors, *cors, same-origin
+            cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+            credentials: "same-origin", // include, *same-origin, omit
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + sessionStorage.getItem("token")
+                // 'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            redirect: "follow", // manual, *follow, error
+            referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+            body: JSON.stringify(data),
+        });
+        return response.text(); // parses JSON response into native JavaScript objects
+    }
+
+   
+
+        function finishProject()
+        {
+            let projects = [];
+
+            getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt")
+            .then((data) =>
+            {      
+                projects = data;
+
+                let array = {
+                    "projektTablaId": projects[document.getElementById("projektID").value].projektTablaId,
+                    "projektId": projects[document.getElementById("projektID").value].projektTablaId,
+                    "allapot": "Completed",
+                    "megrendelesId": projects[document.getElementById("projektID").value].megrendelesId,
+                    "datum": projects[document.getElementById("projektID").value].datum,
+                    "osszeg": projects[document.getElementById("projektID").value].osszeg
+                };
+
+                putData('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt/'+projects[document.getElementById("projektID").value].projektTablaId, array).then((data) =>
+                {
+                    console.log(data);
+                    $("#Fin_Project").modal('toggle');
+                });
+            });
+            
+        }
+	</script>
+</body>
+</html>
