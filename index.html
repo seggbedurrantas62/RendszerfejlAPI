@@ -1,0 +1,1778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Index</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+
+    <style>
+        .loader {
+            border: 16px solid #f3f3f3; /* Light grey */
+            border-top: 16px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+    </style>
+</head>
+<body>
+    <header class="m-1">
+        <nav class="navbar navbar-expand-lg bg-primary border border-white rounded-pill">
+            <div class="container-fluid">
+                <a class="navbar-brand text-white" href="#">NapElem.zrt</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse text-white" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <button class="border-0 btn-primary pe-1" data-bs-toggle="modal" data-bs-target="#Part_Add">Alkatrész hozzáadása</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="border-0 btn-primary pe-1" onclick="Part_Price_Mod_Open()">Alkatrész árának módosítása</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="border-0 btn-primary pe-1" onclick="Missing_Part_Show()">Hiányzó alkatrészek listázása</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="border-0 btn-primary pe-1" onclick="Missing_Ordered_Part_Show()">Hiányzó, de lefoglalt alkatrészek listázása</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="border-0 btn-primary pe-1" onclick="Incoming_Parts_Add()">Beérkező anyagok kezelése</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="border-0 btn-primary pe-1" onclick="Crate_Max_Number_Modify()">Rekesz kezelés</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="border-0 btn-primary pe-1" onclick="Project_Draft()">Projekthez rendelés</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="border-0 btn-primary pe-1" onclick="Project_Time_Payment()">Becsült idő és pénz</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="border-0 btn-primary pe-1" onclick="AddProject_Modal_Open()">Projekt hozzáadása</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="border-0 btn-primary pe-1" onclick="Project_Listing()">Projekt listázása</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="border-0 btn-primary pe-1" onclick="Part_Listing()">Alkatrészek listázása</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="border-0 btn-primary pe-1" onclick="P_Selecting()">Projekt kiválasztása</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="border-0 btn-primary pe-1" onclick="Project_Parts_Selecting()">Projekthez tartozó alkatrészek listázása</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="border-0 btn-primary pe-1" data-bs-toggle="modal" data-bs-target="#Set_Price">Árkalkuláció megadása</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="border-0 btn-primary pe-1" data-bs-toggle="modal" data-bs-target="#Fin_Project">Projekt befejezése</button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <main class="p-3">
+        <div class="ms-3 mb-1 mt-1">
+            <select onchange="Show_Table()" id="table_show" class="form-select" aria-label="Default select example" style="width: 15%;">
+                <option value="Projekt" selected>Projekt</option>
+                <option value="Megrendeles">Megrendelés</option>
+                <option value="Alkatresz">Alkatrész</option>
+                <option value="Raktar">Raktár</option>
+            </select>
+        </div>
+
+        <div id="table" class="row m-3 border rounded border-dark">
+            <div class="loader"></div>
+        </div>
+    </main>
+    <footer class="m-1 p-2 border border-white rounded-pill bg-primary">
+        <div class="pe-5 ps-5 pt-1">
+            <p>Copyright</p>
+            <p>Elérhetőség</p>
+            <p>Segítség</p>
+        </div>
+    </footer>
+
+    <div class="modal fade" id="Part_Add" tabindex="-1" aria-labelledby="Part_Add" aria-hidden="true">
+      <div class="modal-dialog">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <h1 class="modal-title fs-5">Alkatrész hozzáadása</h1>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                  <form class="form-group" action="javascript:void(0)">
+                      <div class="mb-3">
+                          <label for="elem_nev" class="form-label">Alkatrész neve</label>
+                          <input type="text" class="form-control" id="elem_nev" placeholder="Alkatrész neve">
+                      </div>
+                      <div class="mb-3">
+                          <label for="elem_ar" class="form-label">Ár</label>
+                          <input type="number" class="form-control" id="elem_ar" placeholder="Alkatrész ára">
+                      </div>
+                      <div class="mb-3">
+                          <label for="meret" class="form-label">Méret</label>
+                          <input type="number" class="form-control" id="meret" placeholder="Alkatrész mérete">
+                      </div>
+                      <div class="mb-3">
+                          <label for="keszlet" class="form-label">Készlet</label>
+                          <input type="number" class="form-control" id="keszlet" placeholder="Készlet">
+                      </div>
+                      <div class="mb-3">
+                          <label for="alkatresz_allapot" class="form-label">Állapot</label>
+                          <select class="form-control" name="alkatresz_allapot" id="alkatresz_allapot">
+                              <option value="elerheto">Elérhető</option>
+                              <option value="nemelerheto">Nem elérhető</option>
+                          </select>
+                      </div>
+                  </form>
+              </div>
+              <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
+                  <button onclick="AddPart()" type="button" class="btn btn-primary">Felvétel</button>
+              </div>
+          </div>
+      </div>
+  </div>
+
+    <div class="modal fade" id="Part_Price_Modify" tabindex="-1" aria-labelledby="Part_Price_Modify" aria-hidden="true">
+      <div class="modal-dialog">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <h1 class="modal-title fs-5">Alkatrész árának módosítása</h1>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                  <form class="form-group" id="part_price_modify-form" action="javascript:void(0)">
+                      <div class="mb-3">
+                          <label for="alkatresz_nev" class="form-label">alkatresz_nev</label>
+                          <select onchange="fill_price()" class="form-control" id="alkatresz_nev">
+
+                          </select>
+                      </div>
+                      <div class="mb-3">
+                          <label for="price" class="form-label">Ár</label>
+                          <input type="number" class="form-control" id="price" placeholder="Alkatrész ára">
+                      </div>
+                  </form>
+              </div>
+              <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
+                  <button onclick="Part_Price_Mod()" type="button" class="btn btn-primary">Módosítás</button>
+              </div>
+          </div>
+      </div>
+  </div>
+
+    <div class="modal fade" id="Missing_parts" tabindex="-1" aria-labelledby="Missing_parts" aria-hidden="true">
+      <div class="modal-dialog">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <h1 class="modal-title fs-5">Hiányzó alkatrészek</h1>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                  <div id="missing_part_table">
+                      <div class="loader"></div>
+                  </div>
+              </div>
+              <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
+              </div>
+          </div>
+      </div>
+  </div>
+
+    <div class="modal fade" id="Missing_Ordered_parts" tabindex="-1" aria-labelledby="Missing_Ordered_parts" aria-hidden="true">
+      <div class="modal-dialog">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <h1 class="modal-title fs-5">Hiányzó, de lefoglalt alkatrészek</h1>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                  <div class="row" id="missing_ordered_part_table">
+                      <div class="text-center">
+                          <div class="loader"></div>
+                      </div>
+                  </div>
+              </div>
+              <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
+              </div>
+          </div>
+      </div>
+  </div>
+
+    <div class="modal fade" id="Incoming_Parts" tabindex="-1" aria-labelledby="Incoming_Parts" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Beérkező anyagok felvétele a rendszerbe</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form class="form-group" id="incoming_part-form" action="javascript:void(0)">
+                        <div class="mb-3">
+                            <label for="part_name" class="form-label">Alkatrész neve</label>
+                            <select onchange="empty_crate()" class="form-control" id="part_name">
+
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="db" class="form-label">Darabszám</label>
+                            <input type="number" class="form-control" id="db" placeholder="Darabszám">
+                        </div>
+                        <div class="mb-3">
+                            <label for="crate_id" class="form-label">Rekesz sorszáma</label>
+                            <p id="crate_id"></p>
+                        </div>
+                        <div class="mb-3" id="crate_size_div">
+                            <label for="crate_size_full" class="form-label">Rekesz mérete</label>
+                            <p id="crate_size_full"></p>
+                        </div>
+                        <div class="mb-3" id="elem_size_div">
+                            <label for="elem_size" class="form-label">Alkatrész mérete</label>
+                            <p id="elem_size"></p>
+                        </div>
+                        <div class="mb-3">
+                            <label for="crate_size" class="form-label">Raktáron</label>
+                            <p id="crate_size"></p>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
+                    <button onclick="Add_Incoming_Parts()" type="button" class="btn btn-primary">Módosítás</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="Crate_Size_Modify" tabindex="-1" aria-labelledby="Crate_Size_Modify" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Rekesz maximális méretének módosítása</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form class="form-group" id="crate_size_modify-form" action="javascript:void(0)">
+                        <div class="mb-3">
+                            <label for="rekeszId" class="form-label">Rekesz száma</label>
+                            <select onchange="fill_crate_size()" class="form-control" id="rekeszId">
+
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="crate_size-elem_nev" class="form-label">Rekesz által tárolt termék neve</label>
+                            <p id="crate_size-elem_nev"></p>
+                        </div>
+                        <div class="mb-3">
+                            <label for="size" class="form-label">Mérete</label>
+                            <input type="number" class="form-control" id="size" placeholder="Rekesz mérete">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
+                    <button onclick="Crate_Max_Number_Set()" type="button" class="btn btn-primary">Módosítás</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="Project_draft_modal" tabindex="-1" aria-labelledby="Project_draft_modal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Alkatrész hozzárendelése a projekthez</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form class="form-group" id="Project_draft_form" action="javascript:void(0)">
+                        <div class="mb-3">
+                            <label for="projektId" class="form-label">Projekt</label>
+                            <select onchange="Draft_fill()" class="form-control" id="projektId">
+
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="orderId" class="form-label">Megrendelés</label>
+                            <select class="form-control" id="orderId">
+
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
+                    <button onclick="Draft()" type="button" class="btn btn-primary">Hozzárendelés</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="Project_timeandpay_modal" tabindex="-1" aria-labelledby="Project_timeandpay_modal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Projekt ideje és költsége</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="time_and_pay_id" class="form-label">Projekt azonosítója</label>
+                        <select onchange="project_switch()" class="form-control" id="time_and_pay_id">
+
+                        </select>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-7"> Idő </div>
+                        <div class="col-5"> Összeg </div>
+                    </div>
+                    <div id="time_and_pay_body">
+
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="Project_Add" tabindex="-1" aria-labelledby="Project_Add" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Projekt létrehozása</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form class="form-group" action="javascript:void(0)">
+                        <div class="mb-3">
+                            <label for="megrendID" class="form-label">MegrendelesId</label>
+                            <input type="number" class="form-control" id="megrendID" placeholder="Megrendelés ID">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
+                    <button onclick="AddProject()" type="button" class="btn btn-primary">Felvétel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="Project_Listing" tabindex="-1" aria-labelledby="Project_Listing" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+<!--                    <h1 class="modal-title fs-5">Projektek listázása</h1>-->
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="container mt-1">
+                        <h1>Projektek listázása</h1>
+                        <!-- List of elements from API -->
+                        <div class="card">
+                            <div class="card-header">
+                                <table class="table table-bordered table-striped">
+                                    <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Állapot</th>
+                                        <th>Létrehozás ideje</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="tableBody">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="Part_Listing" tabindex="-1" aria-labelledby="Part_Listing" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+<!--                    <h1 class="modal-title fs-5">Alkatreszek listázása</h1>-->
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="container mt-1">
+
+                        <h1>Alkatrészek listázása</h1>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <table class="table table-bordered table-striped">
+                                    <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Név</th>
+                                        <th>Ár</th>
+                                        <th>Állapot</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="tableBody_parts">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="Project_Selecting" tabindex="-1" aria-labelledby="Project_Selecting" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Projektek listázása, kiválasztása kivitelezéshez</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="p_id" class="form-label">Projektek azonosítója</label>
+                        <select onchange="Project_Select()" class="form-control" id="p_id">
+
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="p_allapot" class="form-label">Projekt állapota</label>
+                        <p id="p_allapot">
+
+                        </p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="p_select_for_btn" onclick="Project_Select_For()" class="btn btn-primary" data-bs-dismiss="modal">Kiválasztás</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="Project_Parts_Selecting" tabindex="-1" aria-labelledby="Project_Parts_Selecting" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Projekthez tartozó alkatrészek listázása</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="p_select_id" class="form-label">Projektek azonosítója</label>
+                        <select onchange="Project_Part_Select()" class="form-control" id="p_select_id">
+
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <div id="project_alkatresz_table" class="row">
+                            <div class="col-9">
+                                <p class="form-label">Alkatrész neve</p>
+                            </div>
+                            <div class="col-3">
+                                <p class="form-label">Darabszám</p>
+                            </div>
+                            <div id="project_part_name" class="col-9">
+                                <p>Válassz projektet</p>
+                            </div>
+                            <div id="project_alkatresz_db" class="col-3">
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="project_rekesz" class="form-label">Rekesz</label>
+                        <p id="project_rekesz">Válassz projektet</p>
+                    </div>
+                    <div class="mb-3">
+                        <label for="project_sor" class="form-label">Sor</label>
+                        <p id="project_sor">Válassz rekeszt</p>
+                    </div>
+                    <div class="mb-3">
+                        <label for="project_oszlop" class="form-label">Oszlop</label>
+                        <p id="project_oszlop">Válassz rekeszt</p>
+                    </div>
+                    <div class="mb-3">
+                        <label for="project_szint" class="form-label">Szint</label>
+                        <p id="project_szint">Válassz rekeszt</p>
+                    </div>
+                    <div class="mb-3">
+                        <label for="project_route" class="form-label">Legrövidebb út (sor,oszlop,szint)</label>
+                        <p id="project_route">Válassz projektet</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="Set_Price" tabindex="-1" aria-labelledby="Set_Price" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Árkalkuláció</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form class="form-group" id="part_add-form">
+                        <div class="mb-3">
+                            <label for="projektID_cal" class="form-label">Projekt ID</label>
+                            <input type="number" min="0" class="form-control" id="projektID_cal" placeholder="Projekt ID">
+                        </div>
+                        <div class="mb-3">
+                            <label for="price_cal" class="form-label">Becsült ár</label>
+                            <input type="number" class="form-control" id="price_cal" placeholder="Becsült ár">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
+                    <button onclick="SetPrice()" type="button" class="btn btn-primary">Módosítás</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="Fin_Project" tabindex="-1" aria-labelledby="Fin_Project" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Projekt befejezése</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form class="form-group" id="part_add-form_finish">
+                        <div class="mb-3">
+                            <label for="projektID_finish" class="form-label">Projekt ID</label>
+                            <input type="number" min="0" class="form-control" id="projektID_finish" placeholder="Projekt ID">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
+                    <button onclick="finishProject()" type="button" class="btn btn-primary">Befejezés</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
+<script>
+    let parts;
+    let crates;
+    let projects;
+    let orders;
+    let crate_places = [];
+    let bool_user_command = false;
+
+    Show_Table();
+
+    async function postDataForToken(url = "", data = {}) {
+        // Default options are marked with *
+        const response = await fetch(url, {
+            method: "POST", // *GET, POST, PUT, DELETE, etc.
+            mode: "cors", // no-cors, *cors, same-origin
+            cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+            credentials: "same-origin", // include, *same-origin, omit
+            headers: {
+                "Content-Type": "application/json",
+                // 'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            redirect: "follow", // manual, *follow, error
+            referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+            body: JSON.stringify(data), // body data type must match "Content-Type" header
+        });
+        return response.text(); // parses JSON response into native JavaScript objects
+    }
+
+    async function postData(url = "", data = {}) {
+        bool_user_command = true;
+        // Default options are marked with *
+        const response = await fetch(url, {
+            method: "POST", // *GET, POST, PUT, DELETE, etc.
+            mode: "cors", // no-cors, *cors, same-origin
+            cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+            credentials: "same-origin", // include, *same-origin, omit
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + sessionStorage.getItem("token")
+                // 'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            redirect: "follow", // manual, *follow, error
+            referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+            body: JSON.stringify(data), // body data type must match "Content-Type" header
+        });
+        Show_Table();
+        return response.json(); // parses JSON response into native JavaScript objects
+    }
+
+    async function getData(url = "") {
+        bool_user_command = true;
+        // Default options are marked with *
+        const response = await fetch(url, {
+            method: "GET", // *GET, POST, PUT, DELETE, etc.
+            mode: "cors", // no-cors, *cors, same-origin
+            cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+            credentials: "same-origin", // include, *same-origin, omit
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + sessionStorage.getItem("token")
+                // 'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            redirect: "follow", // manual, *follow, error
+            referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+        });
+        return response.json(); // parses JSON response into native JavaScript objects
+    }
+
+    async function putData(url = "", data = {}) {
+        bool_user_command = true;
+        // Default options are marked with *
+        const response = await fetch(url, {
+            method: "PUT", // *GET, POST, PUT, DELETE, etc.
+            mode: "cors", // no-cors, *cors, same-origin
+            cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+            credentials: "same-origin", // include, *same-origin, omit
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + sessionStorage.getItem("token")
+                // 'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            redirect: "follow", // manual, *follow, error
+            referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+            body: JSON.stringify(data),
+        });
+        Show_Table();
+        return response.text(); // parses JSON response into native JavaScript objects
+    }
+
+    function token_refresh(){
+        let array = {
+            "username": sessionStorage.getItem("username"),
+            "password": sessionStorage.getItem("password")
+        };
+
+        postDataForToken('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Authenticate', array)
+            .then((data) =>
+            {
+                if ( data !== 'Invalid credentials'){
+                    sessionStorage.setItem("token", data);
+                }else{
+                    location.replace('login.html');
+                }
+                console.log("lefutott");
+                setTimeout(ten_min_loop,300000);
+            });
+    }
+    function ten_min_loop(){
+        if (bool_user_command === false){
+            location.replace("login.html");
+        }else{
+            bool_user_command = false;
+            token_refresh();
+        }
+    }
+    setTimeout(ten_min_loop,300000);
+
+    function AddPart(){
+        let array = {
+            "elemNev":          document.getElementById("elem_nev").value,
+            "elemAr":           document.getElementById("elem_ar").value,
+            "meret":            document.getElementById("meret").value,
+            "keszlet":          document.getElementById("keszlet").value,
+            "alkatreszAllapot": document.getElementById("alkatresz_allapot").options[document.getElementById("alkatresz_allapot").selectedIndex].value,
+        }
+
+        console.log(array);
+
+        postData(" https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Alkatresz", array)
+            .then(() =>
+            {
+                $("#Part_Add").modal('toggle');
+            });
+    }
+
+    function Part_Price_Mod_Open(){
+        getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Alkatresz")
+            .then((data) =>
+            {
+                parts = data;
+
+                document.getElementById("alkatresz_nev").innerHTML = "";
+                for (let part in parts){
+                    if ( part.elemNev === null ) {
+                        console.log("null");
+                    }else{
+                        document.getElementById("alkatresz_nev").innerHTML += '<option>' + parts[part].elemNev + '</option>';
+                        // console.log(parts[part].elemNev);
+                    }
+                }
+
+                fill_price();
+                $("#Part_Price_Modify").modal('toggle');
+            });
+    }
+    function fill_price(){
+        document.getElementById("price").value = parts[document.getElementById("alkatresz_nev").selectedIndex].elemAr;
+    }
+    function Part_Price_Mod(){
+        let array = {
+            "elemId": parts[document.getElementById("alkatresz_nev").selectedIndex].elemId,
+            "elemNev": parts[document.getElementById("alkatresz_nev").selectedIndex].elemNev,
+            "elemAr": document.getElementById("price").value,
+            "meret": parts[document.getElementById("alkatresz_nev").selectedIndex].meret,
+            "keszlet": parts[document.getElementById("alkatresz_nev").selectedIndex].keszlet,
+            "lefoglaltKeszlet": parts[document.getElementById("alkatresz_nev").selectedIndex].lefoglaltKeszlet,
+            "alkatreszAllapot": parts[document.getElementById("alkatresz_nev").selectedIndex].alkatreszAllapot,
+        };
+        putData('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Alkatresz/'+parts[document.getElementById("alkatresz_nev").selectedIndex].elemId, array).then((data) =>
+        {
+            console.log(data);
+            $("#Part_Price_Modify").modal('toggle');
+        });
+    }
+
+    function Missing_Part_Show(){
+        let db = 0;
+        getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Megrendeles")
+            .then((data) =>
+            {
+                document.getElementById("missing_part_table").innerHTML = `
+                            <div class="row mb-3">
+                                <div class="col-3"> Megrendelés azonosító</div>
+                                <div class="col-3"> Elem azonosító </div>
+                                <div class="col-6"> Hiány (db) </div>
+                            </div>
+                        `;
+
+                orders = data;
+
+                for (let i=0;i<orders.length;i++) {
+                    if (orders[i].foglalt === false) {
+                        if (orders[i].szuksegesKeszlet - orders[i].elemDb > 0) {
+                            // console.log("-------");
+                            // console.log( orders[i].megrendelesId);
+                            // console.log( orders[i].elemId);
+                            // console.log( orders[i].szuksegesKeszlet - orders[i].elemDb);
+                            let kul = orders[i].szuksegesKeszlet - orders[i].elemDb;
+                            document.getElementById("missing_part_table").innerHTML += '<div id="'+i+'" class="row mb-1">';
+                            document.getElementById(i).innerHTML += '<div class="col-3">' + orders[i].megrendelesId + '</div>';
+                            document.getElementById(i).innerHTML += '<div class="col-3">' + orders[i].elemId + '</div>';
+                            document.getElementById(i).innerHTML += '<div class="col-6">' + kul + '</div>';
+                            document.getElementById("missing_part_table").innerHTML += '</div>';
+                        }
+                        db++;
+                    }
+                }
+
+                if (db === 0){
+                    document.getElementById("missing_part_table").innerHTML = `
+                            <div class="row mb-3">
+                                <div class="col-12"> Nincs hiányzó alkatrész! </div>
+                            </div>
+                        `;
+                }
+                $('#Missing_parts').modal('toggle');
+            });
+    }
+
+    function Missing_Ordered_Part_Show(){
+        let db = 0;
+        getData(" https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Megrendeles")
+            .then((data) =>
+            {
+                document.getElementById("missing_ordered_part_table").innerHTML = `
+                            <div class="row mb-3">
+                                <div class="col-4"> Megrendelés azonsító</div>
+                                <div class="col-4"> Elem azonsító </div>
+                                <div class="col-4"> Hiány (db) </div>
+                            </div>
+                        `;
+
+                for (let order in data){
+                    if ( data[order].foglalt === true ) {
+                        document.getElementById("missing_ordered_part_table").innerHTML += `
+                            <div class="row" class="mb-3">
+                                <div class="col-4">` + data[order].megrendelesId + `</div>
+                                <div class="col-4">` + data[order].elemId + `</div>
+                                <div class="col-4">` + data[order].lefoglalandoKeszlet + `</div>
+                            </div>
+                        `;
+                        db++;
+                    }
+                }
+
+                if (db === 0){
+                    document.getElementById("missing_ordered_part_table").innerHTML = `
+                            <div class="row mb-3">
+                                <div class="col-12"> Nincs hiányzó alkatrész! </div>
+                            </div>
+                        `;
+                }
+
+                $('#Missing_Ordered_parts').modal('toggle');
+            });
+    }
+
+    function Incoming_Parts_Add(){
+
+        getData(" https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Raktar")
+            .then((data) => {
+                crates = data;
+                empty_crate();
+                $("#Incoming_Parts").modal('toggle');
+            });
+
+        document.getElementById("part_name").innerHTML = "";
+        for (let part in parts){
+            document.getElementById("part_name").innerHTML += '<option>' + parts[part].elemNev + '</option>';
+        }
+    }
+    function empty_crate(){
+        let is_crate = false;
+        for (let crate in crates){
+            if (crates[crate].elemId === parts[document.getElementById("part_name").selectedIndex].elemId){
+                if ( is_crate ){
+                    document.getElementById("crate_id").innerHTML += '<button class="btn-primary pe-1 border rounded" onclick="(function (){document.getElementById(`crate_size_full`).innerHTML = crates['+crate+'].rekeszMeret;})();">'+crates[crate].rekeszId+'</button>';
+                    document.getElementById("crate_size_full").innerHTML = parseInt(document.getElementById("crate_size_full").innerText) + parseInt(crates[crate].rekeszMeret);
+                    document.getElementById("crate_size").innerHTML = parts[document.getElementById("part_name").selectedIndex].keszlet;
+                }else{
+                    document.getElementById("crate_id").innerHTML = '<button class="btn-primary pe-1 border rounded" onclick="(function (){document.getElementById(`crate_size_full`).innerHTML = crates['+crate+'].rekeszMeret;})();">'+crates[crate].rekeszId+'</button>';
+                    document.getElementById("crate_size_full").innerHTML = crates[crate].rekeszMeret;
+                    document.getElementById("crate_size").innerHTML = parts[document.getElementById("part_name").selectedIndex].keszlet;
+                    is_crate = true;
+                }
+                document.getElementById("elem_size").innerHTML = parts[document.getElementById("part_name").selectedIndex].meret;
+                let a = {
+                    sor:crates[crate].sor,
+                    oszlop:crates[crate].oszlop,
+                    szint:crates[crate].szint
+                };
+                crate_places.push(a);
+            }
+        }
+
+        if ( !is_crate ){
+            document.getElementById("crate_id").innerHTML = "Nincs raktáron";
+            document.getElementById("crate_size_full").innerHTML = "---";
+            document.getElementById("crate_size").innerHTML = parts[document.getElementById("part_name").selectedIndex].keszlet;
+        }
+    }
+    function Add_Incoming_Parts(){
+        let elem_id = parts[document.getElementById("part_name").selectedIndex].elemId;             //elemId
+        let rekeszek = document.getElementById("crate_id").getElementsByClassName( 'btn-primary' ); //rekeszek amikben ez az alkatrész van
+        let dbszam = [];                                                                            //rekszek tartalma db számba
+        let uj_alkatresz_db = document.getElementById("db").value;                                  //hány db új alkatrész
+        let raktar = 0;                                                                             //összes rekesz mérete egyben
+        for (let i=0;i<rekeszek.length;i++){
+            raktar += crates[search_rekeszId(crates,rekeszek[i].innerHTML)].rekeszMeret;
+            dbszam.push(crates[search_rekeszId(crates,rekeszek[i].innerHTML)].tartalmazDb);
+        }
+        let alkatresz_meret = parts[document.getElementById("part_name").selectedIndex].meret;      //alkatrész mérete
+
+        // console.log(crates);
+        for (let i=0;i<rekeszek.length;i++){
+            let elpakolt_db=0;
+            // console.log(parseInt(crates[search_rekeszId(crates,rekeszek[i].innerHTML)].rekeszMeret));
+            // console.log(parseInt(alkatresz_meret));
+            let elem_db = parseInt(parseInt(crates[search_rekeszId(crates,rekeszek[i].innerHTML)].rekeszMeret)/parseInt(alkatresz_meret)); //összesen ennyi alkatrész fér bele a rekeszbe
+            // console.log(elem_db);
+            let ures_hely = dbszam[i]; // ennyi már van benne
+            // console.log(ures_hely);
+
+            if ( (elem_db-ures_hely) >= 0 ){
+                let array;
+
+                elpakolt_db = (elem_db-ures_hely);
+                if (uj_alkatresz_db<=elpakolt_db){
+                    elpakolt_db = uj_alkatresz_db;
+                    uj_alkatresz_db = 0;
+
+                    array = {
+                        "rekeszId":    crates[search_rekeszId(crates,rekeszek[i].innerHTML)].rekeszId,
+                        "elemId":      crates[search_rekeszId(crates,rekeszek[i].innerHTML)].elemId,
+                        "sor":         crates[search_rekeszId(crates,rekeszek[i].innerHTML)].sor,
+                        "oszlop":      crates[search_rekeszId(crates,rekeszek[i].innerHTML)].oszlop,
+                        "szint":       crates[search_rekeszId(crates,rekeszek[i].innerHTML)].szint,
+                        "rekeszMeret": crates[search_rekeszId(crates,rekeszek[i].innerHTML)].rekeszMeret,
+                        "tartalmazDb": crates[search_rekeszId(crates,rekeszek[i].innerHTML)].tartalmazDb + parseInt(elpakolt_db)
+                    };
+
+                    console.log(array);
+
+                }else{
+
+                    uj_alkatresz_db -= elpakolt_db;
+
+                    array = {
+                        "rekeszId":    crates[search_rekeszId(crates,rekeszek[i].innerHTML)].rekeszId,
+                        "elemId":      crates[search_rekeszId(crates,rekeszek[i].innerHTML)].elemId,
+                        "sor":         crates[search_rekeszId(crates,rekeszek[i].innerHTML)].sor,
+                        "oszlop":      crates[search_rekeszId(crates,rekeszek[i].innerHTML)].oszlop,
+                        "szint":       crates[search_rekeszId(crates,rekeszek[i].innerHTML)].szint,
+                        "rekeszMeret": crates[search_rekeszId(crates,rekeszek[i].innerHTML)].rekeszMeret,
+                        "tartalmazDb": elem_db
+                    };
+
+                    console.log(array);
+                }
+
+                putData('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Raktar/'+crates[search_rekeszId(crates,rekeszek[i].innerHTML)].rekeszId, array).then((data) =>
+                {
+                    console.log(data);
+                });
+            }else {
+                console.log( crates[search_rekeszId(crates,rekeszek[i].innerHTML)].rekeszId + " tele van.");
+            }
+
+        }
+        if (uj_alkatresz_db>0){
+            let a = {
+                sor:1,
+                oszlop:1,
+                szint:1
+            };
+
+            let ok=true;
+            for (let i=0;i<crate_places.length;i++){
+                let check_place = {
+                    sor:    crate_places[i].sor,
+                    oszlop: crate_places[i].oszlop,
+                    szint:  crate_places[i].szint
+                }
+                if ( JSON.stringify(a) === JSON.stringify(check_place) ){
+                    ok=false;
+                    break;
+                }
+            }
+            if (!ok){
+                a = crate_place_check(a);
+            }
+
+            let array = {
+                "elemId":      elem_id,
+                "sor":         a.sor,
+                "oszlop":      a.oszlop,
+                "szint":       a.szint,
+                "rekeszMeret": uj_alkatresz_db*alkatresz_meret,
+                "tartalmazDb": uj_alkatresz_db
+            };
+
+            postData('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Raktar', array).then((data) =>
+            {
+                console.log(data);
+            });
+        }
+
+        let alkatresz = {
+            "elemId":           parts[document.getElementById("part_name").selectedIndex].elemId,
+            "elemNev":          parts[document.getElementById("part_name").selectedIndex].elemNev,
+            "elemAr":           parts[document.getElementById("part_name").selectedIndex].elemAr,
+            "meret":            parts[document.getElementById("part_name").selectedIndex].meret,
+            "keszlet":          parts[document.getElementById("part_name").selectedIndex].keszlet + parseInt(document.getElementById("db").value),
+            "alkatreszAllapot": parts[document.getElementById("part_name").selectedIndex].alkatreszAllapot,
+        }
+
+        putData('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Alkatresz/'+parts[document.getElementById("part_name").selectedIndex].elemId, alkatresz).then((data) =>
+        {
+            console.log(data);
+        });
+        $("#Incoming_Parts").modal('toggle');
+    }
+    function crate_place_check(place={}){
+        let all_ok = true;
+
+        while ( all_ok ){
+
+            for (let i=0;i<crate_places.length;i++) {
+                let check_place = {
+                    sor:    crate_places[i].sor,
+                    oszlop: crate_places[i].oszlop,
+                    szint:  crate_places[i].szint
+                }
+
+                if ( place.sor < 50){
+                    if (JSON.stringify(place) === JSON.stringify(check_place)){
+                        place.sor = parseInt(place.sor) + 1;
+                    }else{
+                        all_ok = false;
+                    }
+                }else if (place.oszlop < 50){
+                    place.sor = 1;
+                    if (JSON.stringify(place) === JSON.stringify(check_place)){
+                        place.oszlop = parseInt(place.oszlop) + 1;
+                    }else{
+                        all_ok = false;
+                    }
+                }else if(place.szint < 5){
+                    place.sor = 1;
+                    place.oszlop = 1;
+                    if (JSON.stringify(place) === JSON.stringify(check_place)){
+                        place.szint = parseInt(place.szint) + 1;
+                    }else{
+                        all_ok = false;
+                    }
+                }else{
+                    all_ok = true;
+                }
+
+            }
+        }
+        return place;
+    }
+
+    function Crate_Max_Number_Modify(){
+        getData(" https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Raktar")
+            .then((data) => {
+                crates = data;
+                document.getElementById("rekeszId").innerHTML = "";
+                for (let crate in crates){
+                    document.getElementById("rekeszId").innerHTML += '<option>' + crates[crate].rekeszId + '</option>';
+                }
+
+                fill_crate_size();
+                $("#Crate_Size_Modify").modal('toggle');
+            });
+    }
+    function fill_crate_size(){
+        // console.log(crates[document.getElementById("rekeszId").selectedIndex]);
+        document.getElementById("size").value = crates[document.getElementById("rekeszId").selectedIndex].rekeszMeret;
+        for (let part in parts){
+            if (parts[part].elemId === crates[document.getElementById("rekeszId").selectedIndex].elemId){
+                document.getElementById("crate_size-elem_nev").innerHTML= parts[part].elemNev;
+            }
+        }
+    }
+    function Crate_Max_Number_Set(){
+        let array = {
+            "rekeszId": crates[document.getElementById("rekeszId").selectedIndex].rekeszId,
+            "elemId": crates[document.getElementById("rekeszId").selectedIndex].elemId,
+            "sor": crates[document.getElementById("rekeszId").selectedIndex].sor,
+            "oszlop": crates[document.getElementById("rekeszId").selectedIndex].oszlop,
+            "szint": crates[document.getElementById("rekeszId").selectedIndex].szint,
+            "rekeszMeret": document.getElementById("size").value,
+            "tartalmazDb": crates[document.getElementById("rekeszId").selectedIndex].tartalmazDb,
+        };
+        putData('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Raktar/'+crates[document.getElementById("rekeszId").selectedIndex].rekeszId, array).then((data) =>
+        {
+            console.log(data);
+            $("#Crate_Size_Modify").modal('toggle');
+        });
+    }
+
+    function Project_Draft(){
+        getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt").
+        then((data) =>
+        {
+            document.getElementById("projektId").innerHTML = "";
+            projects = data;
+            for (let i=0;i<data.length;i++){
+                document.getElementById("projektId").innerHTML += '<option>' + data[i].projektId + '</option>';
+            }
+            getData(" https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Megrendeles").
+            then((order_data) =>
+            {
+                orders = order_data;
+                Draft_fill();
+            });
+        });
+        $("#Project_draft_modal").modal('toggle');
+    }
+    function Draft_fill(){
+        document.getElementById("orderId").innerHTML = "";
+        for (let i=0;i<projects.length;i++){
+            if ( parseInt(projects[i].megrendelesId) ===  parseInt(projects[search_projektId(projects,document.getElementById("projektId").options[document.getElementById("projektId").selectedIndex].text)].megrendelesId))
+                document.getElementById("orderId").innerHTML += '<option>' + projects[search_projektId(projects,document.getElementById("projektId").options[document.getElementById("projektId").selectedIndex].text)].megrendelesId + '</option>';
+        }
+
+    }
+    function Draft(){
+        let array = {
+            "megrendelesId":    document.getElementById("orderId").options[document.getElementById("orderId").selectedIndex].text,
+            "elemId":           orders[search_orderID(orders,document.getElementById("orderId").options[document.getElementById("orderId").selectedIndex].text)].elemId,
+            "elemDb":           orders[search_orderID(orders,document.getElementById("orderId").options[document.getElementById("orderId").selectedIndex].text)].szuksegesKeszlet,
+            "szuksegesKeszlet": orders[search_orderID(orders,document.getElementById("orderId").options[document.getElementById("orderId").selectedIndex].text)].szuksegesKeszlet,
+            "foglalt":          orders[search_orderID(orders,document.getElementById("orderId").options[document.getElementById("orderId").selectedIndex].text)].foglalt,
+        }
+
+        let proj_pos = search_orderID(orders,document.getElementById("orderId").options[document.getElementById("orderId").selectedIndex].text);
+        let elem_pos = search_elemId(parts,orders[proj_pos].elemId);
+        let lefoglalt_alkatresz = orders[search_orderID(orders,document.getElementById("orderId").options[document.getElementById("orderId").selectedIndex].text)].szuksegesKeszlet - orders[search_orderID(orders,document.getElementById("orderId").options[document.getElementById("orderId").selectedIndex].text)].elemDb;
+        let alkatresz_array = {
+            "elemId":           parts[elem_pos].elemId,
+            "elemNev":          parts[elem_pos].elemNev,
+            "elemAr":           parts[elem_pos].elemAr,
+            "meret":            parts[elem_pos].meret,
+            "keszlet":          parts[elem_pos].keszlet - lefoglalt_alkatresz,
+            "lefoglaltKeszlet": parts[elem_pos].lefoglaltKeszlet,
+            "alkatreszAllapot": parts[elem_pos].alkatreszAllapot,
+        };
+
+        putData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Megrendeles/"+document.getElementById("orderId").options[document.getElementById("orderId").selectedIndex].text,array).
+        then((data) =>
+        {
+            putData('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Alkatresz/'+parts[elem_pos].elemId, alkatresz_array).then((data) =>
+            {
+                console.log(data);
+            });
+
+            console.log(data);
+            $("#Project_draft_modal").modal('toggle');
+        });
+    }
+
+    function Project_Time_Payment(){
+        getData(" https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt")
+            .then((data) => {
+
+                document.getElementById("time_and_pay_id").innerHTML = "";
+                projects = data;
+                for (let i=0;i<data.length;i++){
+                    document.getElementById("time_and_pay_id").innerHTML += '<option>' + data[i].projektId + '</option>';
+                }
+
+                document.getElementById("time_and_pay_body").innerHTML = "";
+
+                $("#Project_timeandpay_modal").modal('toggle');
+            });
+    }
+    function project_switch(){
+        document.getElementById("time_and_pay_body").innerHTML = "";
+        document.getElementById("time_and_pay_body").innerHTML = `
+            <div class="row" class="mb-3">
+                <div class="col-7"> `+projects[search_projektId(projects,document.getElementById("time_and_pay_id").options[document.getElementById("time_and_pay_id").selectedIndex].text)].datum+` </div>
+                <div class="col-5"> `+projects[search_projektId(projects,document.getElementById("time_and_pay_id").options[document.getElementById("time_and_pay_id").selectedIndex].text)].osszeg+` </div>
+            </div>
+        `;
+    }
+
+    function AddProject_Modal_Open(){
+        $("#Project_Add").modal('toggle');
+    }
+    function AddProject(){
+        let array = {
+            "allapot": "New",
+            "megrendelesId": document.getElementById("megrendID").value
+        }
+
+
+        postData(" https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt", array)
+            .then(() =>
+            {
+                $("#Project_Add").modal('toggle');
+            })
+            .catch(error => console.log(error));
+    }
+
+    function Project_Listing(){
+        getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt").
+            then((data) => {
+            const tbody = document.getElementById('tableBody');
+            let array = [];
+            for (const item of data) {
+                if ( !array.includes(item.projektId) ){
+                    array.push(item.projektId);
+                    const row = document.createElement('tr');
+                    const idCell = document.createElement('td');
+                    idCell.textContent = item.projektId;
+                    row.appendChild(idCell);
+                    const statusCell = document.createElement('td');
+                    statusCell.textContent = item.allapot;
+                    row.appendChild(statusCell);
+                    const dateCell = document.createElement('td');
+                    dateCell.textContent = item.datum;
+                    row.appendChild(dateCell);
+                    if(statusCell.textContent !== "")
+                        tbody.appendChild(row);
+                }
+            }
+
+                $("#Project_Listing").modal('toggle');
+            });
+    }
+
+    function Part_Listing(){
+        getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Alkatresz").
+            then((data) => {
+                const tbody = document.getElementById('tableBody_parts');
+                for (const item of data) {
+                    const row = document.createElement('tr');
+                    const idCell = document.createElement('td');
+                    idCell.textContent = item.elemId;
+                    row.appendChild(idCell);
+                    const nameCell = document.createElement('td');
+                    nameCell.textContent = item.elemNev;
+                    row.appendChild(nameCell);
+                    const priceCell = document.createElement('td');
+                    priceCell.textContent = `${item.elemAr} Ft`;
+                    row.appendChild(priceCell);
+                    const stateCell = document.createElement('td');
+                    stateCell.textContent = item.alkatreszAllapot;
+                    row.appendChild(stateCell);
+                    tbody.appendChild(row);
+                }
+
+                $("#Part_Listing").modal('toggle');
+            })
+
+    }
+
+    function P_Selecting(){
+        getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt").
+        then((data) =>
+        {
+            document.getElementById("p_id").innerHTML = "";
+            projects = data;
+            let array = [];
+            for (let i=0;i<data.length;i++){
+                if ( !array.includes(data[i].projektId) ){
+                    array.push(data[i].projektId);
+                    document.getElementById("p_id").innerHTML += '<option>' + data[i].projektId + '</option>';
+                }
+            }
+            Project_Select();
+            $('#Project_Selecting').modal('toggle');
+        });
+
+    }
+    function Project_Select(){
+        let selected_projekt = projects[search_projektId(projects,document.getElementById("p_id").options[document.getElementById("p_id").selectedIndex].text)];
+
+        document.getElementById("p_allapot").innerHTML = selected_projekt.allapot;
+
+        if (selected_projekt.allapot === "InProgress"){
+            document.getElementById("p_select_for_btn").classList.add("disabled");
+            document.getElementById("p_select_for_btn").innerText = "Már kivetelzés közben tart";
+        }else {
+            document.getElementById("p_select_for_btn").classList.remove("disabled")
+            document.getElementById("p_select_for_btn").innerText = "Kiválasztás";
+        }
+    }
+    function Project_Select_For(){
+        let selected_projekt = projects[search_projektId(projects,document.getElementById("p_id").options[document.getElementById("p_id").selectedIndex].text)];
+
+
+        let array = {
+            "projektTablaId": selected_projekt.projektTablaId,
+            "projektId":     selected_projekt.projektId,
+            "allapot":       "InProgress",
+            "megrendelesId": selected_projekt.megrendelesId,
+            "datum":         selected_projekt.datum,
+            "osszeg":        selected_projekt.osszeg,
+        }
+
+        putData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt/"+selected_projekt.projektId,array).
+        then((data) => {
+            console.log(data);
+        });
+    }
+
+    function Project_Parts_Selecting(){
+        getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt").
+        then((data) =>
+        {
+            document.getElementById("p_select_id").innerHTML = "";
+            projects = data;
+            let array = [];
+            for (let i=0;i<data.length;i++){
+                if ( !array.includes(data[i].projektId) && data[i].allapot === "InProgress" ) {
+                    array.push(data[i].projektId);
+                    document.getElementById("p_select_id").innerHTML += '<option>' + data[i].projektId + '</option>';
+                }
+            }
+
+            getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Alkatresz").
+            then((data) =>
+            {
+                parts = data;
+                getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Megrendeles").
+                then((data) =>
+                {
+                    orders = data;
+                    getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Raktar").
+                    then((data) =>
+                    {
+                        crates = data;
+
+                        $('#Project_Parts_Selecting').modal('toggle');
+                        Project_Part_Select();
+                    });
+                });
+            });
+        });
+    }
+    function Project_Part_Select(){
+        document.getElementById("project_alkatresz_table").innerHTML =`
+                            <div class="col-9">
+                                <p class="form-label">Alkatrész neve</p>
+                            </div>
+                            <div class="col-3">
+                                <p class="form-label">Darabszám</p>
+                            </div>
+                            <div id="project_part_name" class="col-9">
+                                <p>Válassz projektet</p>
+                            </div>
+                            <div id="project_alkatresz_db" class="col-3">
+
+                            </div>`;
+
+        let selected_projekts = [];
+        let selected_orders = [];
+        for (let i=0;i<projects.length;i++){
+            if ( parseInt(projects[i].projektId) === parseInt(document.getElementById("p_select_id").options[document.getElementById("p_select_id").selectedIndex].text) ){
+                selected_projekts.push(projects[i]);
+                selected_orders.push(orders[search_orderID(orders,projects[i].megrendelesId)]);
+            }
+        }
+        let selected_parts = [];
+        for (let i=0;i<selected_orders.length;i++){
+            selected_parts.push(parts[search_elemId(parts,selected_orders[i].elemId)]);
+        }
+
+        if (selected_parts.length > 1) {
+            document.getElementById("project_part_name").innerText =    selected_parts[0].elemNev;
+            document.getElementById("project_alkatresz_db").innerText = selected_parts[0].keszlet;
+            for (let i=1;i<selected_parts.length;i++){
+                document.getElementById("project_alkatresz_table").innerHTML += `
+                            <div  class="col-9">
+                                `+selected_parts[i].elemNev+`
+                            </div>
+                            <div class="col-3">
+                                `+selected_parts[i].keszlet+`
+                            </div>`;
+            }
+        }else{
+            document.getElementById("project_part_name").innerText =    selected_parts[0].elemNev;
+            document.getElementById("project_alkatresz_db").innerText = selected_parts[0].keszlet;
+        }
+
+        document.getElementById("project_rekesz").innerHTML = "";
+        let crate_counter = 0;
+        for (let j=0;j<selected_parts.length;j++){
+            if ( document.getElementById("project_rekesz").innerHTML === "")
+                document.getElementById("project_rekesz").innerHTML += selected_parts[j].elemNev + "<br>";
+            else{
+                document.getElementById("project_rekesz").innerHTML += "<br>" + selected_parts[j].elemNev + "<br>";
+            }
+            for (let i=0;i<crates.length;i++){
+                if (parseInt(crates[i].elemId) === parseInt(selected_parts[j].elemId)){
+                    document.getElementById("project_rekesz").innerHTML += `
+                        <button class="btn-primary pe-1 border rounded" onclick="Project_Part_Fill(`+crates[i].rekeszId+`)">`+crates[i].rekeszId+`</button>
+                    `;
+                    crate_counter++;
+                }
+            }
+        }
+        if (crate_counter === 0){
+            document.getElementById("project_rekesz").innerHTML = "Nincs raktáron!";
+        }
+
+        let parts_needed = [];
+        let parts_curr_have = [];
+        for (let i=0;i<selected_orders.length;i++){
+            parts_needed.push(selected_orders[i].szuksegesKeszlet);
+            parts_curr_have.push(selected_orders[i].elemDb);
+        }
+
+        document.getElementById("project_sor").innerText = "Válassz rekeszt";
+        document.getElementById("project_oszlop").innerText = "Válassz rekeszt";
+        document.getElementById("project_szint").innerText = "Válassz rekeszt";
+        document.getElementById("project_route").innerText = "Válassz rekeszt";
+        let crate_positions = [];
+        for (let j=0;j<selected_parts.length;j++){
+            for (let i=0;i<crates.length;i++){
+                if (crates[i].elemId === selected_parts[j].elemId){
+                    if (parts_curr_have[j] < parts_needed[j]){
+                        parts_curr_have[j] += parseInt(crates[i].tartalmazDb);
+                        if (document.getElementById("project_route").innerText === "Válassz rekeszt"){
+                            document.getElementById("project_route").innerText = "";
+                        }
+                        document.getElementById("project_route").innerText += "\n" + crates[i].sor + "-" + crates[i].oszlop + "-" + crates[i].szint + " (" + crates[i].tartalmazDb + " db)";
+                        crate_positions.push([crates[i].sor,crates[i].oszlop,crates[i].szint]);
+                    }else{
+                        document.getElementById("project_route").innerText += "\n\nMinden alkatrész megvan!";
+                        // console.log(crates[i].sor + "-" + crates[i].oszlop + "-" + crates[i].szint + " (" + crates[i].tartalmazDb + " db)\n");
+                        break;
+                   }
+                }
+            }
+        }
+
+        if (crate_counter > 1){
+            shortest_route(crate_positions);
+        }
+    }
+    function Project_Part_Fill(crate_id){
+        let selected_crate = crates[search_rekeszId(crates,crate_id)];
+
+        document.getElementById("project_sor").innerText = selected_crate.sor;
+        document.getElementById("project_oszlop").innerText = selected_crate.oszlop;
+        document.getElementById("project_szint").innerText = selected_crate.szint;
+    }
+    // legrövidebb út
+    function shortest_route(json){
+        json.sort();
+
+        console.log(document.getElementById("project_route").innerText);
+        document.getElementById("project_route").innerText = "";
+
+        for (let i=0;i<json.length;i++){
+            document.getElementById("project_route").innerText += json[i][0] +"-"+ json[i][1] +"-"+ json[i][2] + "\n";
+        }
+    }
+
+    function SetPrice()
+    {
+        let projects = [];
+
+        getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt")
+            .then((data) =>
+            {
+                projects = data;
+
+                let array = {
+                    "projektTablaId": projects[document.getElementById("projektID_cal").value].projektTablaId,
+                    "projektId": projects[document.getElementById("projektID_cal").value].projektTablaId,
+                    "allapot": "Scheduled",
+                    "megrendelesId": projects[document.getElementById("projektID_cal").value].megrendelesId,
+                    "datum": projects[document.getElementById("projektID_cal").value].datum,
+                    "osszeg": document.getElementById("price_cal").value
+                };
+
+                putData('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt/'+projects[document.getElementById("projektID_cal").value].projektTablaId, array).then((data) =>
+                {
+                    console.log(data);
+                    $("#Set_Price").modal('toggle');
+                });
+            });
+
+    }
+
+    function finishProject()
+    {
+        let projects = [];
+
+        getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt")
+            .then((data) =>
+            {
+                projects = data;
+
+                let array = {
+                    "projektTablaId": projects[document.getElementById("projektID_finish").value].projektTablaId,
+                    "projektId": projects[document.getElementById("projektID_finish").value].projektTablaId,
+                    "allapot": "Completed",
+                    "megrendelesId": projects[document.getElementById("projektID_finish").value].megrendelesId,
+                    "datum": projects[document.getElementById("projektID_finish").value].datum,
+                    "osszeg": projects[document.getElementById("projektID_finish").value].osszeg
+                };
+
+                putData('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt/'+projects[document.getElementById("projektID_finish").value].projektTablaId, array).then((data) =>
+                {
+                    console.log(data);
+                    $("#Fin_Project").modal('toggle');
+                });
+            });
+
+    }
+
+    function Show_Table(){
+        let table = document.getElementById("table_show").options[document.getElementById("table_show").selectedIndex].value;
+        document.getElementById("table").innerHTML = '<div class="loader"></div>';
+        getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/"+table)
+            .then((data) =>
+            {
+                switch(document.getElementById("table_show").selectedIndex) {
+                    case 0:
+                        document.getElementById("table").innerHTML = `
+                            <div class="row">
+                                <div class="col-1">
+                                    Projekt azonosító
+                                </div>
+                                <div class="col-2">
+                                    Állapot
+                                </div>
+                                <div class="col-2">
+                                    Megrendelés azonosító
+                                </div>
+                                <div class="col-4">
+                                    Dátum
+                                </div>
+                                <div class="col-3">
+                                    Összeg
+                                </div>
+                            </div>
+                        `;
+
+                        for (let d in data){
+                            document.getElementById("table").innerHTML += `
+                            <div class="row">
+                                <div class="col-1">
+                                    `+data[d].projektId+`
+                                </div>
+                                <div class="col-2">
+                                    `+data[d].allapot+`
+                                </div>
+                                <div class="col-2">
+                                    `+data[d].megrendelesId+`
+                                </div>
+                                <div class="col-4">
+                                    `+data[d].datum+`
+                                </div>
+                                <div class="col-3">
+                                    `+data[d].osszeg+`
+                                </div>
+                            </div>
+                        `;
+                        }
+                        break;
+                    case 1:
+                        document.getElementById("table").innerHTML = `
+                            <div class="row">
+                                <div class="col-1">
+                                    Megrendelés azonosító
+                                </div>
+                                <div class="col-1">
+                                    Elem azonosító
+                                </div>
+                                <div class="col-1">
+                                    Elem db
+                                </div>
+                                <div class="col-2">
+                                    Szükséges készlet
+                                </div>
+                                <div class="col-2">
+                                    Előfoglalt készlet
+                                </div>
+                                <div class="col-1">
+                                    Szabad készlet
+                                </div>
+                                <div class="col-1">
+                                    Foglalt
+                                </div>
+                                <div class="col-3">
+                                    Lefoglalandó készlet
+                                </div>
+                            </div>
+                        `;
+                        for (let d in data){
+                            document.getElementById("table").innerHTML += `
+                            <div class="row">
+                                <div class="col-1">
+                                    `+data[d].megrendelesId+`
+                                </div>
+                                <div class="col-1">
+                                    `+data[d].elemId+`
+                                </div>
+                                <div class="col-1">
+                                   `+data[d].elemDb+`
+                                </div>
+                                <div class="col-2">
+                                    `+data[d].szuksegesKeszlet+`
+                                </div>
+                                <div class="col-2">
+                                    `+data[d].elofoglaltKeszlet+`
+                                </div>
+                                <div class="col-1">
+                                    `+data[d].szabadKeszlet+`
+                                </div>
+                                <div class="col-1">
+                                    `+data[d].foglalt+`
+                                </div>
+                                <div class="col-3">
+                                    `+data[d].lefoglalandoKeszlet+`
+                                </div>
+                            </div>
+                        `;
+                        }
+                        break;
+                    case 2:
+                        document.getElementById("table").innerHTML = `
+                    <div class="row">
+                        <div class="col-1">
+                            Elem azonosító
+                        </div>
+                        <div class="col-4">
+                            Elem név
+                        </div>
+                        <div class="col-2">
+                            Elem ár
+                        </div>
+                        <div class="col-1">
+                            Méret
+                        </div>
+                        <div class="col-1">
+                            Készlet
+                        </div>
+                        <div class="col-1">
+                            Lefoglalt készlet
+                        </div>
+                        <div class="col-2">
+                            Alkatrész Állapot
+                        </div>
+                    </div>
+                `;
+                        for (let d in data){
+                            document.getElementById("table").innerHTML += `
+                                <div class="row">
+                                    <div class="col-1">
+                                        `+data[d].elemId+`
+                                    </div>
+                                    <div class="col-4">
+                                        `+data[d].elemNev+`
+                                    </div>
+                                    <div class="col-2">
+                                        `+data[d].elemAr+`
+                                    </div>
+                                    <div class="col-1">
+                                        `+data[d].meret+`
+                                    </div>
+                                    <div class="col-1">
+                                        `+data[d].keszlet+`
+                                    </div>
+                                    <div class="col-1">
+                                        `+data[d].lefoglaltKeszlet+`
+                                    </div>
+                                    <div class="col-2">
+                                        `+data[d].alkatreszAllapot+`
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        break;
+                    case 3:
+                        document.getElementById("table").innerHTML = `
+                            <div class="row">
+                                <div class="col-1">
+                                    Rekesz azonosíító
+                                </div>
+                                <div class="col-2">
+                                    Elem azonosító
+                                </div>
+                                <div class="col-2">
+                                    Sor
+                                </div>
+                                <div class="col-2">
+                                    Oszlop
+                                </div>
+                                <div class="col-2">
+                                    Szint
+                                </div>
+                                <div class="col-2">
+                                    Rekesz méret
+                                </div>
+                                <div class="col-1">
+                                    Tartalom (db)
+                                </div>
+                            </div>
+                        `;
+                        for (let d in data){
+                            document.getElementById("table").innerHTML += `
+                            <div class="row">
+                                <div class="col-1">
+                                   `+data[d].rekeszId+`
+                                </div>
+                                <div class="col-2">
+                                    `+data[d].elemId+`
+                                </div>
+                                <div class="col-2">
+                                   `+data[d].sor+`
+                                </div>
+                                <div class="col-2">
+                                    `+data[d].oszlop+`
+                                </div>
+                                <div class="col-2">
+                                    `+data[d].szint+`
+                                </div>
+                                <div class="col-2">
+                                    `+data[d].rekeszMeret+`
+                                </div>
+                                <div class="col-1">
+                                    `+data[d].tartalmazDb+`
+                                </div>
+                            </div>
+                        `;
+                        }
+                        break;
+                    default:
+                        alert("Nincs ilyen tábla!");
+                }
+            })
+            .catch(() =>
+            {
+                location.replace('login.html');
+            });
+    }
+
+
+    function search_rekeszId(array,valuetofind) {
+        for (let i = 0; i < array.length; i++) {
+            if (parseInt(array[i]['rekeszId']) === parseInt(valuetofind)) {
+                // console.log(array[i]);
+                return i;
+            }
+        }
+        return -1;
+    }
+    function search_projektId(array,valuetofind) {
+        for (let i = 0; i < array.length; i++) {
+            if (parseInt(array[i]['projektId']) === parseInt(valuetofind)) {
+                // console.log(array[i]);
+                return i;
+            }
+        }
+        return -1;
+    }
+    function search_orderID(array,valuetofind) {
+        for (let i = 0; i < array.length; i++) {
+            if (parseInt(array[i]['megrendelesId']) === parseInt(valuetofind)) {
+                // console.log(array[i]);
+                return i;
+            }
+        }
+        return -1;
+    }
+    function search_elemId(array,valuetofind) {
+        for (let i = 0; i < array.length; i++) {
+            if (parseInt(array[i]['elemId']) === parseInt(valuetofind)) {
+                // console.log(array[i]);
+                return i;
+            }
+        }
+        return -1;
+    }
+
+</script>
