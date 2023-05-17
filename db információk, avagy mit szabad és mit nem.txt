@@ -1,0 +1,29 @@
+--Projekt táblába mit kell insertelni: (allapot, megrendeles_id) 
+pl:
+	INSERT INTO Projekt (allapot, megrendeles_id) !!! állapotok csak ezek lehetnek: 
+							1. New: a projekt létrehozásra került, de még nem történt meg a helyszíni felmérés.
+							2. Draft: a helyszíni felmérés folyamatban van, a terv még nem került véglegesítésre.
+							3. Wait: a helyszíni felmérés megtörtént, de az árkalkulációt nem lehetett befejezni, 
+								mert volt olyan alkatrész, amely nincs a raktárban, így az ára nem ismert.
+							4. Scheduled: árkalkuláció elkészült, a projekt a megvalósításra várakozik.
+							5. InProgress: a projekt megvalósítása megkezdődött, amelynek első lépése az alkatrészek
+									raktárból való kivételezése.
+							6. Completed: a projekt sikeresen megvalósult.
+							7. Failed: a projekt megvalósítása nem sikerült
+												
+	VALUES ('New', 3)
+
+--Megrendeles táblába mit kell insertelni: (elem_id,elem_db,szukseges_keszlet,foglalt) 
+pl:
+	INSERT INTO Megrendeles(elem_id, elem_db,szukseges_keszlet, foglalt )
+	VALUES(1, 9,800,1)
+
+--Raktar táblába mit kell insertelni: (elem_id,sor,oszlop,szint,rekesz_meret,tartalmaz_db) !!! a sor, oszlop és szint nem lehet 1-nél kisebb és 9-nél nagyobb
+pl:
+	INSERT INTO Raktar(elem_id,sor,oszlop,szint,rekesz_meret)
+	VALUES(6, 1,1,1, 500)
+
+--Alkatresz táblába mit kell insertelni: (elem_nev,elem_ar,meret,keszlet,alkatresz_allapot) !!! az állapot vagy elerheto vagy nem_elerheto
+pl:
+	INSERT INTO Alkatresz(elem_nev,elem_ar,meret,keszlet,alkatresz_allapot)
+	VALUES('JA Solar 410 W napelem',67000 ,21 ,410 ,'elerheto')
