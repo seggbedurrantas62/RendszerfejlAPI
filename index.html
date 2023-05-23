@@ -368,11 +368,14 @@
                     <form class="form-group" >
                         <div class="mb-3">
                             <label for="projektID_add" class="form-label">ProjektId</label>
-                            <input type="number" class="form-control" id="projektID_add" placeholder="Projekt ID">
+                            <input type="number" min="0" class="form-control" id="projektID_add" placeholder="Projekt ID">
                         </div>
                         <div class="mb-3">
                             <label for="megrendID" class="form-label">MegrendelesId</label>
-                            <input type="number" class="form-control" id="megrendID" placeholder="Megrendelés ID">
+                            <select class="form-control" id="megrendID">
+
+                            </select>
+                            <p class="d-none" id="string"></p>
                         </div>
                     </form>
                 </div>
@@ -605,6 +608,8 @@
     let orders = [];
     let crate_places = [];
     let bool_user_command = false;
+
+    Authorizator(sessionStorage.getItem("role"));
 
     Show_Table();
 
@@ -1182,28 +1187,51 @@
 
                 document.getElementById("time_and_pay_body").innerHTML = "";
 
+                project_switch();
                 $("#Project_timeandpay_modal").modal('toggle');
             });
     }
     function project_switch(){
+        let today = new Date().getDay();
+        let tomonth = new Date().getMonth();
+        let p_date = projects[search_projektId(projects,document.getElementById("time_and_pay_id").options[document.getElementById("time_and_pay_id").selectedIndex].text)].datum;
+        let p_day = p_date.substr(8,2);
+        let p_month = p_date.substr(5,2);
+
+        let finish_month = tomonth-p_month;
+        if (finish_month<0)
+            finish_month *= -1;
+        let finish_day = today-p_day;
+        if (finish_day<0)
+            finish_day *= -1;
+        let finish_date = finish_month*30+finish_day;
+
         document.getElementById("time_and_pay_body").innerHTML = "";
         document.getElementById("time_and_pay_body").innerHTML = `
             <div class="row" class="mb-3">
-                <div class="col-7"> `+projects[search_projektId(projects,document.getElementById("time_and_pay_id").options[document.getElementById("time_and_pay_id").selectedIndex].text)].datum+` </div>
+                <div class="col-7"> `+ finish_date +` nap </div>
                 <div class="col-5"> `+projects[search_projektId(projects,document.getElementById("time_and_pay_id").options[document.getElementById("time_and_pay_id").selectedIndex].text)].osszeg+` </div>
             </div>
         `;
     }
 
     function AddProject_Modal_Open(){
-        $("#Project_Add").modal('toggle');
-        document.getElementById("projektID_add").min = projects[projects.length-1].projektId++;
+        getData(" https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Megrendeles")
+            .then((data) => {
+
+                document.getElementById("megrendID").innerHTML = "";
+                for (let i=0;i<data.length;i++){
+                    document.getElementById("megrendID").innerHTML += '<option>' + data[i].megrendelesId + '</option>';
+                }
+
+                $("#Project_Add").modal('toggle');
+            });
     }
     function AddProject(){
         let array = {
             "allapot": "New",
             "projektId": document.getElementById("projektID_add").value,
-            "megrendelesId": document.getElementById("megrendID").value
+            "megrendelesId": document.getElementById("megrendID").options[document.getElementById("megrendID").selectedIndex].value
         }
 
 
@@ -1511,7 +1539,7 @@
                 }
             }
 
-            
+            SetPrice();
             $('#Set_Price').modal('toggle');
         });
     }
@@ -1575,7 +1603,51 @@
     }
 
     function Authorizator(num){
-        
+        console.log(num);
+        let gombok = document.getElementById("navbarNav").getElementsByTagName("li");
+        let array = [];
+        switch (num){
+            //admin
+            case 'admin':
+                console.log("Admin");
+                break;
+            //szakember
+            case 'szakember':
+                array = [6,7,8,9,10,13,14];
+                for (let i=0;i<gombok.length;i++) {
+                    if ( !array.includes(i) ){
+                        gombok[i].classList.add("d-none");
+                    } else{
+                        console.log(gombok[i].innerText);
+                    }
+                }
+                break;
+            //Raktárvezető
+            case 'raktarvezeto':
+                array = [1,2,3,4,5,6];
+                for (let i=0;i<gombok.length;i++) {
+                    if ( !array.includes(i) ){
+                        gombok[i].classList.add("d-none");
+                    } else{
+                        console.log(gombok[i].innerText);
+                    }
+                }
+                break
+            //Raktáros
+            case 'raktaros':
+                array = [9,11,12];
+                for (let i=0;i<gombok.length;i++) {
+                    if ( !array.includes(i) ){
+                        gombok[i].classList.add("d-none");
+                    } else{
+                        console.log(gombok[i].innerText);
+                    }
+                }
+                break;
+            //Ha nem jó
+            default:
+                console.log('A kurva anyádért nem működsz!');
+        }
     }
 
     function Show_Table(){

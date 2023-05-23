@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+    <style>
+        .loader {
+            border: 16px solid #f3f3f3; /* Light grey */
+            border-top: 16px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 120px;
+            height: 120px;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+<h2>Login</h2>
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card mt-5">
+                <div class="card-header">
+                    <h3>Bejelentkezés</h3>
+                </div>
+                <div class="card-body">
+                    <form class="form-group" id="login-form" onsubmit="on_Submit()" action="javascript:void(0)">
+                        <div class="mb-3">
+                            <label for="Login" class="form-label">Email cím</label>
+                            <input type="text" class="form-control" id="Login" placeholder="name">
+                        </div>
+                        <div class="mb-3">
+                            <label for="Password" class="form-label">Jelszó</label>
+                            <input type="password" class="form-control" id="Password" placeholder="Password">
+                        </div>
+                        <div class="mb-3">
+                            <p id="wrong"></p>
+                        </div>
+                        <button id="submit_btn" type="submit" class="btn btn-primary w-100">Bejelentkezés</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="staticBackdropLabel">Ellenőrzés</h5>
+            </div>
+            <div id="loader_body" class="modal-body text-center">
+                <div class="loader text-center"></div>
+            </div>
+            <div class="modal-footer text-center" style="display: block">
+                <button id="close_btn" type="button" class="btn btn-secondary d-none" data-bs-target="#staticBackdrop" aria-label="Close" data-bs-dismiss="modal">Újra</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<button id="modal_open" type="button" class="btn btn-primary d-none" data-bs-toggle="modal" data-bs-target="#staticBackdrop"></button>
+<button id="modal_close" type="button" class="btn-close d-none" data-dismiss="modal" data-bs-dismiss="modal" data-bs-target="#staticBackdrop" aria-label="Close"></button>
+
+</body>
+</html>
+
+<script>
+    async function postData(url = "", data = {}) {
+        // Default options are marked with *
+        const response = await fetch(url, {
+            method: "POST", // *GET, POST, PUT, DELETE, etc.
+            mode: "cors", // no-cors, *cors, same-origin
+            cache: "no-cache", // *default, no-cache, reload, force-cache, only-if-cached
+            credentials: "same-origin", // include, *same-origin, omit
+            headers: {
+                "Content-Type": "application/json",
+                // 'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            redirect: "follow", // manual, *follow, error
+            referrerPolicy: "no-referrer", // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+            body: JSON.stringify(data), // body data type must match "Content-Type" header
+        });
+        return response.text(); // parses JSON response into native JavaScript objects
+    }
+
+    function on_Submit(){
+        document.getElementById("modal_open").click();
+        document.getElementById("submit_btn").classList.add("disabled");
+        document.getElementById("close_btn").classList.add("d-none");
+        document.getElementById("loader_body").innerHTML = '<div class="loader text-center"></div>';
+
+        let username = document.getElementById("Login").value;
+        let password = document.getElementById("Password").value
+        let array = {
+            "username": username,
+            "password": password
+        };
+
+        postData('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Authenticate', array)
+            .then((data) =>
+            {
+                document.getElementById("modal_close").click();
+                if ( data != 'Invalid credentials'){
+                    sessionStorage.setItem("token", data);
+                    sessionStorage.setItem("username", username);
+                    sessionStorage.setItem("password", password);
+                    let decoded = parseJwt(data);
+                    sessionStorage.setItem("role", decoded.role);
+
+                    location.replace('index.html');
+                }else{
+                    document.getElementById("loader_body").innerHTML = "Rossz felhasználónév vagy jelszó!";
+                    document.getElementById("close_btn").classList.remove("d-none");
+                    document.getElementById("wrong").innerText = "Rossz felhasználónév vagy jelszó!";
+                    document.getElementById("wrong").classList.add("text-danger");
+
+                    document.getElementById("submit_btn").classList.remove("disabled");
+                }
+
+            });
+    }
+
+    function parseJwt (token) {
+        let base64Url = token.split('.')[1];
+        let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        let jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+
+        jsonPayload = convert(jsonPayload);
+
+        return JSON.parse(jsonPayload);
+    }
+
+    function convert(text){
+       text = text.replace("http://schemas.microsoft.com/ws/2008/06/identity/claims/role", "role");
+       return text;
+    }
+</script>
