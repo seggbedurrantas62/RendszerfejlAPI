@@ -76,10 +76,10 @@
                             <button class="border-0 btn-primary pe-1" onclick="Project_Parts_Selecting()">Projekthez tartozó alkatrészek listázása</button>
                         </li>
                         <li class="nav-item">
-                            <button class="border-0 btn-primary pe-1" onclick="SetPrice()">Árkalkuláció megadása</button>
+                            <button class="border-0 btn-primary pe-1" onclick="open_setPrice_Modal()">Árkalkuláció megadása</button>
                         </li>
                         <li class="nav-item">
-                            <button class="border-0 btn-primary pe-1" onclick="finishProject()">Projekt befejezése</button>
+                            <button class="border-0 btn-primary pe-1" onclick="open_finishProject_Modal()">Projekt befejezése</button>
                         </li>
                     </ul>
                 </div>
@@ -365,7 +365,11 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form class="form-group" action="javascript:void(0)">
+                    <form class="form-group" >
+                        <div class="mb-3">
+                            <label for="projektID_add" class="form-label">ProjektId</label>
+                            <input type="number" class="form-control" id="projektID_add" placeholder="Projekt ID">
+                        </div>
                         <div class="mb-3">
                             <label for="megrendID" class="form-label">MegrendelesId</label>
                             <input type="number" class="form-control" id="megrendID" placeholder="Megrendelés ID">
@@ -474,7 +478,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" id="p_select_for_btn" onclick="Project_Select_For()" class="btn btn-primary" data-bs-dismiss="modal">Kiválasztás</button>
+                    <button type="button" id="p_select_for_btn" onclick="Projects_Select_For()" class="btn btn-primary" data-bs-dismiss="modal">Kiválasztás</button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
                 </div>
             </div>
@@ -550,19 +554,17 @@
                     <form class="form-group" id="part_add-form">
                         <div class="mb-3">
                             <label for="projektID_cal" class="form-label">Projekt ID</label>
-                            <select id="projektID_cal" onchange="Project_Select()" class="form-control" id="p_id">
-
-                            </select>
+                            <input type="number" min="0" class="form-control" id="projektID_cal" placeholder="Projekt ID">
                         </div>
-                        <div class="mb-3">
-                            <label for="price_cal" class="form-label">Becsült ár</label>
-                            <input type="number" class="form-control" id="price_cal" placeholder="Becsült ár">
-                        </div>
+<!--                        <div class="mb-3">-->
+<!--                            <label for="price_cal" class="form-label">Becsült ár</label>-->
+<!--                            <input type="number" class="form-control" id="price_cal" placeholder="Becsült ár">-->
+<!--                        </div>-->
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
-                    <button onclick="SetNewPrice()" type="button" class="btn btn-primary">Módosítás</button>
+                    <button onclick="SetPrice()" type="button" class="btn btn-primary">Módosítás</button>
                 </div>
             </div>
         </div>
@@ -579,15 +581,13 @@
                     <form class="form-group" id="part_add-form_finish">
                         <div class="mb-3">
                             <label for="projektID_finish" class="form-label">Projekt ID</label>
-                            <select id="projektID_finish" onchange="Project_Select()" class="form-control" id="p_id">
-
-                            </select>
+                            <input type="number" min="0" class="form-control" id="projektID_finish" placeholder="Projekt ID">
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
-                    <button onclick="finishSelectedProject()" type="button" class="btn btn-primary">Befejezés</button>
+                    <button onclick="finishProject()" type="button" class="btn btn-primary">Befejezés</button>
                 </div>
             </div>
         </div>
@@ -596,10 +596,10 @@
 </html>
 
 <script>
-    let parts;
-    let crates;
-    let projects;
-    let orders;
+    let parts = [];
+    let crates = [];
+    let projects = [];
+    let orders = [];
     let crate_places = [];
     let bool_user_command = false;
 
@@ -1186,10 +1186,12 @@
 
     function AddProject_Modal_Open(){
         $("#Project_Add").modal('toggle');
+        document.getElementById("projektID_add").min = projects[projects.length-1].projektId++;
     }
     function AddProject(){
         let array = {
             "allapot": "New",
+            "projektId": document.getElementById("projektID_add").value,
             "megrendelesId": document.getElementById("megrendID").value
         }
 
@@ -1303,6 +1305,31 @@
         then((data) => {
             console.log(data);
         });
+    }
+    function Projects_Select_For(){
+        let selected_projekts = [];
+        for (let i=0;i<projects.length;i++){
+            if (projects[i].projektId === parseInt(document.getElementById("p_id").options[document.getElementById("p_id").selectedIndex].text)){
+                selected_projekts.push(projects[i]);
+            }
+        }
+        console.log(selected_projekts);
+
+        for (let i=0;i<selected_projekts.length;i++){
+            let array = {
+                "projektTablaId": selected_projekts[i].projektTablaId,
+                "projektId":      selected_projekts[i].projektId,
+                "allapot":        "InProgress",
+                "megrendelesId":  selected_projekts[i].megrendelesId,
+                "datum":          selected_projekts[i].datum,
+                "osszeg":         selected_projekts[i].osszeg,
+            }
+
+            putData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt/"+selected_projekts[i].projektId,array).
+            then((data) => {
+                console.log(data);
+            });
+        }
     }
 
     function Project_Parts_Selecting(){
@@ -1459,83 +1486,72 @@
         }
     }
 
+    function open_setPrice_Modal(){
+        getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt")
+            .then((data) =>
+            {
+                projects = data;
+                $("#Set_Price").modal('toggle');
+            });
+    }
     function SetPrice()
     {
-        getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt").
-        then((data) =>
-        {
-            document.getElementById("projektID_cal").innerHTML = "";
-            projects = data;
-            let array = [];
-            for (let i=0;i<data.length;i++){
-                if ( !array.includes(data[i].projektId) ){
-                    array.push(data[i].projektId);
-                    document.getElementById("projektID_cal").innerHTML += '<option>' + data[i].projektId + '</option>';
-                }
+        let setProjects = [];
+        for (let i=0;i<projects.length;i++){
+            if (projects[i].projektId === parseInt(document.getElementById("projektID_cal").value)){
+                setProjects.push(projects[i]);
             }
-            $('#Set_Price').modal('toggle');
-        });
-    }
-
-    function SetNewPrice()
-    {
-        let selected_projekt = projects[search_projektId(projects,document.getElementById("projektID_cal").options[document.getElementById("projektID_cal").selectedIndex].text)];
-
-
-        let array = {
-            "projektTablaId": selected_projekt.projektTablaId,
-            "projektId":     selected_projekt.projektId,
-            "allapot":       "Scheduled",
-            "megrendelesId": selected_projekt.megrendelesId,
-            "datum":         selected_projekt.datum,
-            "osszeg":        document.getElementById("price_cal").value
         }
 
-        putData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt/"+selected_projekt.projektId,array).
-        then((data) => {
-            console.log(data);
-            $('#Set_Price').modal('toggle');
-        });
+        for (let i=0;i<setProjects.length;i++) {
+            let array = {
+                "projektTablaId": setProjects[i].projektTablaId,
+                "projektId": setProjects[i].projektId,
+                "allapot": "Scheduled",
+                "megrendelesId": setProjects[i].megrendelesId,
+                "datum": setProjects[i].datum,
+                "osszeg": setProjects[i].value
+            };
+
+            putData('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt/' + setProjects[i].projektId, array).then((data) => {
+                console.log(data);
+                $("#Set_Price").modal('toggle');
+            });
+        }
     }
 
+    function open_finishProject_Modal(){
+        getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt")
+            .then((data) =>
+            {
+                projects = data;
+                $("#Fin_Project").modal('toggle');
+            });
+    }
     function finishProject()
     {
-        getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt").
-        then((data) =>
-        {
-            document.getElementById("projektID_finish").innerHTML = "";
-            projects = data;
-            let array = [];
-            for (let i=0;i<data.length;i++){
-                if ( !array.includes(data[i].projektId) ){
-                    array.push(data[i].projektId);
-                    document.getElementById("projektID_finish").innerHTML += '<option>' + data[i].projektId + '</option>';
-                }
+        let comp_projekts = [];
+        for (let i=0;i<projects.length;i++){
+            if (projects[i].projektId === parseInt(document.getElementById("projektID_finish").value)){
+                comp_projekts.push(projects[i]);
             }
-            $('#Fin_Project').modal('toggle');
-        });
-    }
-
-    function finishSelectedProject()
-    {
-        let selected_projekt = projects[search_projektId(projects,document.getElementById("projektID_finish").options[document.getElementById("projektID_finish").selectedIndex].text)];
-
-
-        let array = {
-            "projektTablaId": selected_projekt.projektTablaId,
-            "projektId":     selected_projekt.projektId,
-            "allapot":       "Completed",
-            "megrendelesId": selected_projekt.megrendelesId,
-            "datum":         selected_projekt.datum,
-            "osszeg":        selected_projekt.osszeg
         }
 
-        putData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt/"+selected_projekt.projektId,array).
-        then((data) => {
-            console.log(data);
-            $('#Fin_Project').modal('toggle');
-        });
-
+        for (let i=0;i<comp_projekts.length;i++) {
+            let array = {
+                "projektTablaId": comp_projekts[i].projektTablaId,
+                "projektId": comp_projekts[i].projektId,
+                "allapot": "Completed",
+                "megrendelesId": comp_projekts[i].megrendelesId,
+                "datum": comp_projekts[i].datum,
+                "osszeg": comp_projekts[i].osszeg
+            };
+            console.log(array);
+            putData('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt/' + comp_projekts[i].projektId, array).then((data) => {
+                console.log(data);
+                $("#Fin_Project").modal('toggle');
+            });
+        }
     }
 
     function Show_Table(){
