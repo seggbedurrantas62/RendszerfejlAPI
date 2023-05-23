@@ -76,7 +76,7 @@
                             <button class="border-0 btn-primary pe-1" onclick="Project_Parts_Selecting()">Projekthez tartozó alkatrészek listázása</button>
                         </li>
                         <li class="nav-item">
-                            <button class="border-0 btn-primary pe-1" onclick="open_setPrice_Modal()">Árkalkuláció megadása</button>
+                            <button class="border-0 btn-primary pe-1" onclick="open_setPrice_Modal()">Árkalkuláció</button>
                         </li>
                         <li class="nav-item">
                             <button class="border-0 btn-primary pe-1" onclick="open_finishProject_Modal()">Projekt befejezése</button>
@@ -554,17 +554,18 @@
                     <form class="form-group" id="part_add-form">
                         <div class="mb-3">
                             <label for="projektID_cal" class="form-label">Projekt ID</label>
-                            <input type="number" min="0" class="form-control" id="projektID_cal" placeholder="Projekt ID">
+                            <select id="projektID_cal" onchange="SetPrice()" class="form-control">
+
+                            </select>
                         </div>
-<!--                        <div class="mb-3">-->
-<!--                            <label for="price_cal" class="form-label">Becsült ár</label>-->
-<!--                            <input type="number" class="form-control" id="price_cal" placeholder="Becsült ár">-->
-<!--                        </div>-->
+                        <div class="mb-3">
+                            <label for="price_cal" class="form-label">Becsült ár</label>
+                            <p id="price_cal"></p>
+                        </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
-                    <button onclick="SetPrice()" type="button" class="btn btn-primary">Módosítás</button>
                 </div>
             </div>
         </div>
@@ -581,7 +582,9 @@
                     <form class="form-group" id="part_add-form_finish">
                         <div class="mb-3">
                             <label for="projektID_finish" class="form-label">Projekt ID</label>
-                            <input type="number" min="0" class="form-control" id="projektID_finish" placeholder="Projekt ID">
+                            <select id="projektID_finish" class="form-control">
+
+                            </select>
                         </div>
                     </form>
                 </div>
@@ -1104,8 +1107,12 @@
         {
             document.getElementById("projektId").innerHTML = "";
             projects = data;
+            let array = [];
             for (let i=0;i<data.length;i++){
-                document.getElementById("projektId").innerHTML += '<option>' + data[i].projektId + '</option>';
+                if ( !array.includes(data[i].projektId) ){
+                        array.push(data[i].projektId);
+                        document.getElementById("projektId").innerHTML += '<option>' + data[i].projektId + '</option>';
+                }
             }
             getData(" https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Megrendeles").
             then((order_data) =>
@@ -1165,8 +1172,12 @@
 
                 document.getElementById("time_and_pay_id").innerHTML = "";
                 projects = data;
+                let array = [];
                 for (let i=0;i<data.length;i++){
-                    document.getElementById("time_and_pay_id").innerHTML += '<option>' + data[i].projektId + '</option>';
+                    if ( !array.includes(data[i].projektId) ){
+                        array.push(data[i].projektId);
+                        document.getElementById("time_and_pay_id").innerHTML += '<option>' + data[i].projektId + '</option>';
+                    }
                 }
 
                 document.getElementById("time_and_pay_body").innerHTML = "";
@@ -1265,7 +1276,7 @@
             projects = data;
             let array = [];
             for (let i=0;i<data.length;i++){
-                if ( !array.includes(data[i].projektId) ){
+                if ( !array.includes(data[i].projektId) && (data[i].allapot != "Completed")){
                     array.push(data[i].projektId);
                     document.getElementById("p_id").innerHTML += '<option>' + data[i].projektId + '</option>';
                 }
@@ -1487,47 +1498,56 @@
     }
 
     function open_setPrice_Modal(){
-        getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt")
-            .then((data) =>
-            {
-                projects = data;
-                $("#Set_Price").modal('toggle');
-            });
+        getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt").
+        then((data) =>
+        {
+            document.getElementById("projektID_cal").innerHTML = "";
+            projects = data;
+            let array = [];
+            for (let i=0;i<data.length;i++){
+                if ( !array.includes(data[i].projektId) ){
+                    array.push(data[i].projektId);
+                    document.getElementById("projektID_cal").innerHTML += '<option>' + data[i].projektId + '</option>';
+                }
+            }
+
+            
+            $('#Set_Price').modal('toggle');
+        });
     }
     function SetPrice()
     {
-        let setProjects = [];
-        for (let i=0;i<projects.length;i++){
-            if (projects[i].projektId === parseInt(document.getElementById("projektID_cal").value)){
-                setProjects.push(projects[i]);
+        let selected_projektID = projects[search_projektId(projects,document.getElementById("projektID_cal").options[document.getElementById("projektID_cal").selectedIndex].text)].projektId;
+        let megrendelesek_osszege=0;
+
+        for(let i=0;i<projects.length;i++)
+        {
+            if(projects[i].projektId == selected_projektID)
+            {
+                megrendelesek_osszege += projects[i].osszeg;
             }
         }
 
-        for (let i=0;i<setProjects.length;i++) {
-            let array = {
-                "projektTablaId": setProjects[i].projektTablaId,
-                "projektId": setProjects[i].projektId,
-                "allapot": "Scheduled",
-                "megrendelesId": setProjects[i].megrendelesId,
-                "datum": setProjects[i].datum,
-                "osszeg": setProjects[i].value
-            };
-
-            putData('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt/' + setProjects[i].projektId, array).then((data) => {
-                console.log(data);
-                $("#Set_Price").modal('toggle');
-            });
-        }
+        document.getElementById("price_cal").innerHTML = megrendelesek_osszege;
     }
 
     function open_finishProject_Modal(){
-        getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt")
-            .then((data) =>
-            {
-                projects = data;
-                $("#Fin_Project").modal('toggle');
-            });
+        getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt").
+        then((data) =>
+        {
+            document.getElementById("projektID_finish").innerHTML = "";
+            projects = data;
+            let array = [];
+            for (let i=0;i<data.length;i++){
+                if ( !array.includes(data[i].projektId) && (data[i].allapot != "Completed")){
+                    array.push(data[i].projektId);
+                    document.getElementById("projektID_finish").innerHTML += '<option>' + data[i].projektId + '</option>';
+                }
+            }
+            $('#Fin_Project').modal('toggle');
+        });
     }
+
     function finishProject()
     {
         let comp_projekts = [];
@@ -1552,6 +1572,10 @@
                 $("#Fin_Project").modal('toggle');
             });
         }
+    }
+
+    function Authorizator(num){
+        
     }
 
     function Show_Table(){
