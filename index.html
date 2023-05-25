@@ -880,19 +880,23 @@
                 getData(" https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Alkatresz").then((data_alk) => {
                     parts = data_alk;
 
-                    //empty_crate();
-                    $("#Incoming_Parts").modal('toggle');
-
                     document.getElementById("part_name").innerHTML = "";
                     for (let part in parts){
                         document.getElementById("part_name").innerHTML += '<option value="'+parts[part].elemId+'">' + parts[part].elemNev + '</option>';
                     }
+
+                    empty_crate();
+                    $("#Incoming_Parts").modal('toggle');
                 });
             });
     }
     function empty_crate(){
-        //crate_db_ures_full
-        let selected_part_pos = search_elemId(parts,document.getElementById("part_name").options[document.getElementById("part_name").selectedIndex].value);
+        let selected_part_pos;
+        try {
+            selected_part_pos = search_elemId(parts,document.getElementById("part_name").options[document.getElementById("part_name").selectedIndex].value);
+        }catch (e) {
+            $("#Incoming_Parts").modal('toggle');
+        }
         let is_crate = false;
         for (let crate in crates){
             if (crates[crate].elemId === parts[selected_part_pos].elemId){
@@ -921,6 +925,7 @@
             document.getElementById("crate_size_full").innerHTML = "---";
             document.getElementById("crate_size").innerHTML = parts[document.getElementById("part_name").selectedIndex].keszlet;
         }
+        document.getElementById("crate_db_full").innerText = "";
     }
     function Add_Incoming_Parts(){
         let selected_part_pos = search_elemId(parts,document.getElementById("part_name").options[document.getElementById("part_name").selectedIndex].value);
