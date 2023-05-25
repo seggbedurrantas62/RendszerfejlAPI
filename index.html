@@ -55,7 +55,7 @@
                             <button class="border-0 btn-primary pe-1" onclick="Crate_Max_Number_Modify()">Rekesz kezelés</button>
                         </li>
                         <li class="nav-item">
-                            <button class="border-0 btn-primary pe-1" onclick="Project_Draft()">Projekthez rendelés</button>
+                            <button class="border-0 btn-primary pe-1" onclick="Project_Draft()">Megrendeléshez alkatrész rendelés</button>
                         </li>
                         <li class="nav-item">
                             <button class="border-0 btn-primary pe-1" onclick="Project_Time_Payment()">Becsült idő és pénz</button>
@@ -63,10 +63,10 @@
                         <li class="nav-item">
                             <button class="border-0 btn-primary pe-1" onclick="AddProject_Modal_Open()">Projekt hozzáadása</button>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item d-none">
                             <button class="border-0 btn-primary pe-1" onclick="Project_Listing()">Projekt listázása</button>
                         </li>
-                        <li class="nav-item">
+                        <li class="nav-item d-none">
                             <button class="border-0 btn-primary pe-1" onclick="Part_Listing()">Alkatrészek listázása</button>
                         </li>
                         <li class="nav-item">
@@ -80,6 +80,12 @@
                         </li>
                         <li class="nav-item">
                             <button class="border-0 btn-primary pe-1" onclick="open_finishProject_Modal()">Projekt befejezése</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="border-0 btn-primary pe-1" onclick="add_Order()">Megrendelés hozzáadása projekthez</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="border-0 btn-primary pe-1" onclick="add_New_Order()">Új megrendelés létrehozása</button>
                         </li>
                     </ul>
                 </div>
@@ -602,6 +608,73 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
                     <button onclick="finishProject()" type="button" class="btn btn-primary">Befejezés</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="Project_Add_Plus" tabindex="-1" aria-labelledby="Project_Add_Plus" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Megrendelés hozzáadása</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form class="form-group" >
+                        <div class="mb-3">
+                            <label for="projektID_plus" class="form-label">Projekt Azonosító</label>
+                            <select class="form-control" onchange="add_Order_Fill()" id="projektID_plus">
+
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="megrendID_plus" class="form-label">Megrendelés Azonosító</label>
+                            <select class="form-control" id="megrendID_plus">
+
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
+                    <button onclick="add_Order_Plus()" type="button" class="btn btn-primary">Felvétel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="New_Order_Add" tabindex="-1" aria-labelledby="New_Order_Add" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5">Új megrendelés létrehozása</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form class="form-group" >
+                        <div class="mb-3">
+                            <label for="new_order_elemid" class="form-label">Elem Azonosító</label>
+                            <select class="form-control" id="new_order_elemid">
+
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="new_order_szuk_kesz" class="form-label">Szükséges készlet</label>
+                            <input type="number" min="0" class="form-control" id="new_order_szuk_kesz">
+                        </div>
+                        <div class="mb-3">
+                            <label for="new_order_foglalt" class="form-label">Foglalt</label>
+                            <select class="form-control" id="new_order_foglalt">
+                                <option value="true">Igen</option>
+                                <option value="false">Nem</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bezárás</button>
+                    <button onclick="add_New_Order_Push()" type="button" class="btn btn-primary">Felvétel</button>
                 </div>
             </div>
         </div>
@@ -1452,6 +1525,7 @@
         });
     }
     function Project_Part_Select(){
+        console.log("----");
         document.getElementById("project_alkatresz_table").innerHTML =`
                             <div class="col-9">
                                 <p class="form-label">Alkatrész neve</p>
@@ -1490,7 +1564,6 @@
                             <div class="col-3">
                                 `+selected_orders[i].szuksegesKeszlet+`
                             </div>`;
-                console.log(selected_orders[i].megrendelesId + " | " + selected_orders[i].szuksegesKeszlet);
             }
         }else{
             document.getElementById("project_part_name").innerText =    selected_parts[0].elemNev;
@@ -1524,33 +1597,49 @@
             parts_needed.push(selected_orders[i].szuksegesKeszlet);
             parts_curr_have.push(selected_orders[i].elemDb);
         }
+        // console.log(selected_parts);
 
         document.getElementById("project_sor").innerText = "Válassz rekeszt";
         document.getElementById("project_oszlop").innerText = "Válassz rekeszt";
         document.getElementById("project_szint").innerText = "Válassz rekeszt";
         document.getElementById("project_route").innerText = "Válassz rekeszt";
         let crate_positions = [];
+        // for (let j=0;j<selected_parts.length;j++){
+        //     for (let i=0;i<crates.length;i++){
+        //         if (crates[i].elemId === selected_parts[j].elemId){
+        //             if (parts_curr_have[j] < parts_needed[j]){
+        //                 parts_curr_have[j] += parseInt(crates[i].tartalmazDb);
+        //                 if (document.getElementById("project_route").innerText === "Válassz rekeszt"){
+        //                     document.getElementById("project_route").innerText = "";
+        //                 }
+        //                 document.getElementById("project_route").innerText += "\n" + crates[i].sor + "-" + crates[i].oszlop + "-" + crates[i].szint + " (" + crates[i].tartalmazDb + " db)";
+        //                 if ( !crate_positions.includes([crates[i].sor,crates[i].oszlop,crates[i].szint]) ){
+        //                     crate_positions.push([crates[i].sor,crates[i].oszlop,crates[i].szint]);
+        //                 }
+        //             }else{
+        //                 // document.getElementById("project_route").innerText += "\n\nMinden alkatrész megvan!";
+        //                 console.log(crates[i].sor + "-" + crates[i].oszlop + "-" + crates[i].szint + " (" + crates[i].tartalmazDb + " db)\n");
+        //                 break;
+        //            }
+        //         }
+        //     }
+        // }
         for (let j=0;j<selected_parts.length;j++){
             for (let i=0;i<crates.length;i++){
                 if (crates[i].elemId === selected_parts[j].elemId){
-                    if (parts_curr_have[j] < parts_needed[j]){
-                        parts_curr_have[j] += parseInt(crates[i].tartalmazDb);
-                        if (document.getElementById("project_route").innerText === "Válassz rekeszt"){
-                            document.getElementById("project_route").innerText = "";
-                        }
-                        document.getElementById("project_route").innerText += "\n" + crates[i].sor + "-" + crates[i].oszlop + "-" + crates[i].szint + " (" + crates[i].tartalmazDb + " db)";
-                        crate_positions.push([crates[i].sor,crates[i].oszlop,crates[i].szint]);
-                    }else{
-                        document.getElementById("project_route").innerText += "\n\nMinden alkatrész megvan!";
-                        // console.log(crates[i].sor + "-" + crates[i].oszlop + "-" + crates[i].szint + " (" + crates[i].tartalmazDb + " db)\n");
-                        break;
-                   }
+                    if ( !crate_positions.includes(crates[i])){
+                        crate_positions.push(crates[i]);
+                    }
                 }
             }
         }
+        let crate_pos = [];
+        for (let i=0;i<crate_positions.length;i++){
+            crate_pos.push([crate_positions[i].sor,crate_positions[i].oszlop,crate_positions[i].szint]);
+        }
 
         if (crate_counter > 1){
-            shortest_route(crate_positions);
+            shortest_route(crate_pos);
         }
     }
     function Project_Part_Fill(crate_id){
@@ -1651,6 +1740,104 @@
         }
     }
 
+    //megrendelés hozzáadása
+    function add_Order(){
+        getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt").
+        then((data) =>
+        {
+            projects = data;
+            getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Megrendeles").then( (order_data) => {
+                orders = order_data;
+
+                document.getElementById("projektID_plus").innerHTML = "";
+                document.getElementById("megrendID_plus").innerHTML = "";
+
+                let array = [];
+                for (let i=0;i<data.length;i++){
+                    if ( !array.includes(data[i].projektId) && (data[i].allapot != "Completed")){
+                        array.push(data[i].projektId);
+                        document.getElementById("projektID_plus").innerHTML += '<option>' + data[i].projektId + '</option>';
+                    }
+                }
+
+                add_Order_Fill();
+                $('#Project_Add_Plus').modal('toggle');
+            });
+        });
+    }
+    function add_Order_Fill(){
+        let selected_project_id = projects[search_projektId(projects,document.getElementById("projektID_plus").options[document.getElementById("projektID_plus").selectedIndex].text)].projektId;
+        console.log(selected_project_id);
+
+        let selected_orders = [];
+        document.getElementById("megrendID_plus").innerHTML = "";
+        for (let i=0;i<projects.length;i++){
+            if ( projects[i].projektId === selected_project_id){
+                selected_orders.push(projects[i].megrendelesId);
+            }
+        }
+        for (let i=0;i<orders.length;i++){
+            if ( !selected_orders.includes(orders[i].megrendelesId) ){
+                document.getElementById("megrendID_plus").innerHTML += '<option>' + orders[i].megrendelesId + '</option>';
+            }
+        }
+
+    }
+    function add_Order_Plus(){
+        let selected_order = projects[search_projektId(projects,document.getElementById("projektID_plus").options[document.getElementById("projektID_plus").selectedIndex].text)];
+
+        let array = {
+            "allapot": selected_order.allapot,
+            "projektId": selected_order.projektId,
+            "megrendelesId": document.getElementById("megrendID_plus").options[document.getElementById("megrendID_plus").selectedIndex].text
+        }
+
+        postData(" https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt", array)
+            .then(() =>
+            {
+                $("#Project_Add_Plus").modal('toggle');
+            })
+            .catch(error => console.log(error));
+    }
+
+    //új megrendelés
+    function add_New_Order(){
+        getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Alkatresz").then( (data) => {
+            parts = data;
+
+            document.getElementById("new_order_elemid").innerHTML = "";
+
+            let array = [];
+            for (let i=0;i<parts.length;i++){
+                if ( !array.includes(parts[i].elemId) ){
+                    array.push(parts[i].elemId);
+                    document.getElementById("new_order_elemid").innerHTML += '<option>' + parts[i].elemId + '</option>';
+                }
+            }
+
+            $('#New_Order_Add').modal('toggle');
+        });
+    }
+    function add_New_Order_Push(){
+        let array = {
+            "elemId":               document.getElementById("new_order_elemid").options[document.getElementById("new_order_elemid").selectedIndex].text,
+            "elemDb":               0,
+            "szuksegesKeszlet":     document.getElementById("new_order_szuk_kesz").value,
+            "elofoglaltKeszlet":    0,
+            "szabadKeszlet":        0,
+            "foglalt":              (document.getElementById("new_order_foglalt").options[document.getElementById("new_order_foglalt").selectedIndex].value === 'true'),
+            "lefoglalandoKeszlet":  0
+        }
+
+        console.log(array);
+
+        postData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Megrendeles",array).
+        then((data) => {
+            console.log(data);
+            $('#New_Order_Add').modal('toggle');
+        });
+    }
+
     //beléptető
     function Authorizator(num){
         console.log(num);
@@ -1663,7 +1850,7 @@
                 break;
             //szakember
             case 'szakember':
-                array = [6,7,8,9,10,13,14];
+                array = [6,7,8,9,10,13,14,15,16];
                 for (let i=0;i<gombok.length;i++) {
                     if ( !array.includes(i) ){
                         gombok[i].classList.add("d-none");
@@ -1674,7 +1861,7 @@
                 break;
             //Raktárvezető
             case 'raktarvezeto':
-                array = [1,2,3,4,5,6];
+                array = [1,2,3,4,5,6,15,16];
                 for (let i=0;i<gombok.length;i++) {
                     if ( !array.includes(i) ){
                         gombok[i].classList.add("d-none");
