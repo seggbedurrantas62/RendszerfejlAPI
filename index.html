@@ -246,6 +246,10 @@
                             <label for="crate_size_full" class="form-label">Rekesz mérete</label>
                             <p id="crate_size_full"></p>
                         </div>
+                        <div class="mb-3" id="crate_db_div">
+                            <label for="crate_size_full" class="form-label">Db a rekeszben</label>
+                            <p id="crate_db_full"></p>
+                        </div>
                         <div class="mb-3" id="elem_size_div">
                             <label for="elem_size" class="form-label">Alkatrész mérete</label>
                             <p id="elem_size"></p>
@@ -523,6 +527,10 @@
                         <p id="project_rekesz">Válassz projektet</p>
                     </div>
                     <div class="mb-3">
+                        <label for="project_keszlet" class="form-label">Készlet</label>
+                        <p id="project_keszlet">Válassz projektet</p>
+                    </div>
+                    <div class="mb-3">
                         <label for="project_sor" class="form-label">Sor</label>
                         <p id="project_sor">Válassz rekeszt</p>
                     </div>
@@ -720,6 +728,7 @@
     }
     setTimeout(ten_min_loop,300000);
 
+    //alkatrész hozzáadása
     function AddPart(){
         let array = {
             "elemNev":          document.getElementById("elem_nev").value,
@@ -738,6 +747,7 @@
             });
     }
 
+    //alkatrész ármodosítás
     function Part_Price_Mod_Open(){
         getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Alkatresz")
             .then((data) =>
@@ -778,6 +788,7 @@
         });
     }
 
+    //hiányzó
     function Missing_Part_Show(){
         let db = 0;
         getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Megrendeles")
@@ -822,6 +833,7 @@
             });
     }
 
+    //foglalt
     function Missing_Ordered_Part_Show(){
         let db = 0;
         getData(" https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Megrendeles")
@@ -860,35 +872,41 @@
             });
     }
 
+    //beérkező alkatrész hozzáadása
     function Incoming_Parts_Add(){
-
         getData(" https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Raktar")
             .then((data) => {
                 crates = data;
-                empty_crate();
-                $("#Incoming_Parts").modal('toggle');
-            });
+                getData(" https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Alkatresz").then((data_alk) => {
+                    parts = data_alk;
 
-        document.getElementById("part_name").innerHTML = "";
-        for (let part in parts){
-            document.getElementById("part_name").innerHTML += '<option>' + parts[part].elemNev + '</option>';
-        }
+                    //empty_crate();
+                    $("#Incoming_Parts").modal('toggle');
+
+                    document.getElementById("part_name").innerHTML = "";
+                    for (let part in parts){
+                        document.getElementById("part_name").innerHTML += '<option value="'+parts[part].elemId+'">' + parts[part].elemNev + '</option>';
+                    }
+                });
+            });
     }
     function empty_crate(){
+        //crate_db_ures_full
+        let selected_part_pos = search_elemId(parts,document.getElementById("part_name").options[document.getElementById("part_name").selectedIndex].value);
         let is_crate = false;
         for (let crate in crates){
-            if (crates[crate].elemId === parts[document.getElementById("part_name").selectedIndex].elemId){
+            if (crates[crate].elemId === parts[selected_part_pos].elemId){
                 if ( is_crate ){
-                    document.getElementById("crate_id").innerHTML += '<button class="btn-primary pe-1 border rounded" onclick="(function (){document.getElementById(`crate_size_full`).innerHTML = crates['+crate+'].rekeszMeret;})();">'+crates[crate].rekeszId+'</button>';
+                    document.getElementById("crate_id").innerHTML += '<button class="btn-primary pe-1 border rounded" onclick="(function (){document.getElementById(`crate_size_full`).innerHTML = crates['+crate+'].rekeszMeret; document.getElementById(`crate_db_full`).innerHTML = crates['+crate+'].tartalmazDb;})();">'+crates[crate].rekeszId+'</button>';
                     document.getElementById("crate_size_full").innerHTML = parseInt(document.getElementById("crate_size_full").innerText) + parseInt(crates[crate].rekeszMeret);
-                    document.getElementById("crate_size").innerHTML = parts[document.getElementById("part_name").selectedIndex].keszlet;
+                    document.getElementById("crate_size").innerHTML = parts[selected_part_pos].keszlet;
                 }else{
-                    document.getElementById("crate_id").innerHTML = '<button class="btn-primary pe-1 border rounded" onclick="(function (){document.getElementById(`crate_size_full`).innerHTML = crates['+crate+'].rekeszMeret;})();">'+crates[crate].rekeszId+'</button>';
+                    document.getElementById("crate_id").innerHTML = '<button class="btn-primary pe-1 border rounded" onclick="(function (){document.getElementById(`crate_size_full`).innerHTML = crates['+crate+'].rekeszMeret; document.getElementById(`crate_db_full`).innerHTML = crates['+crate+'].tartalmazDb;})();">'+crates[crate].rekeszId+'</button>';
                     document.getElementById("crate_size_full").innerHTML = crates[crate].rekeszMeret;
-                    document.getElementById("crate_size").innerHTML = parts[document.getElementById("part_name").selectedIndex].keszlet;
+                    document.getElementById("crate_size").innerHTML = parts[selected_part_pos].keszlet;
                     is_crate = true;
                 }
-                document.getElementById("elem_size").innerHTML = parts[document.getElementById("part_name").selectedIndex].meret;
+                document.getElementById("elem_size").innerHTML = parts[selected_part_pos].meret;
                 let a = {
                     sor:crates[crate].sor,
                     oszlop:crates[crate].oszlop,
@@ -905,7 +923,9 @@
         }
     }
     function Add_Incoming_Parts(){
-        let elem_id = parts[document.getElementById("part_name").selectedIndex].elemId;             //elemId
+        let selected_part_pos = search_elemId(parts,document.getElementById("part_name").options[document.getElementById("part_name").selectedIndex].value);
+
+        let elem_id = parts[selected_part_pos].elemId;             //elemId
         let rekeszek = document.getElementById("crate_id").getElementsByClassName( 'btn-primary' ); //rekeszek amikben ez az alkatrész van
         let dbszam = [];                                                                            //rekszek tartalma db számba
         let uj_alkatresz_db = document.getElementById("db").value;                                  //hány db új alkatrész
@@ -914,17 +934,12 @@
             raktar += crates[search_rekeszId(crates,rekeszek[i].innerHTML)].rekeszMeret;
             dbszam.push(crates[search_rekeszId(crates,rekeszek[i].innerHTML)].tartalmazDb);
         }
-        let alkatresz_meret = parts[document.getElementById("part_name").selectedIndex].meret;      //alkatrész mérete
+        let alkatresz_meret = parts[selected_part_pos].meret;      //alkatrész mérete
 
-        // console.log(crates);
         for (let i=0;i<rekeszek.length;i++){
             let elpakolt_db=0;
-            // console.log(parseInt(crates[search_rekeszId(crates,rekeszek[i].innerHTML)].rekeszMeret));
-            // console.log(parseInt(alkatresz_meret));
             let elem_db = parseInt(parseInt(crates[search_rekeszId(crates,rekeszek[i].innerHTML)].rekeszMeret)/parseInt(alkatresz_meret)); //összesen ennyi alkatrész fér bele a rekeszbe
-            // console.log(elem_db);
             let ures_hely = dbszam[i]; // ennyi már van benne
-            // console.log(ures_hely);
 
             if ( (elem_db-ures_hely) >= 0 ){
                 let array;
@@ -1011,15 +1026,15 @@
         }
 
         let alkatresz = {
-            "elemId":           parts[document.getElementById("part_name").selectedIndex].elemId,
-            "elemNev":          parts[document.getElementById("part_name").selectedIndex].elemNev,
-            "elemAr":           parts[document.getElementById("part_name").selectedIndex].elemAr,
-            "meret":            parts[document.getElementById("part_name").selectedIndex].meret,
-            "keszlet":          parts[document.getElementById("part_name").selectedIndex].keszlet + parseInt(document.getElementById("db").value),
-            "alkatreszAllapot": parts[document.getElementById("part_name").selectedIndex].alkatreszAllapot,
+            "elemId":           parts[selected_part_pos].elemId,
+            "elemNev":          parts[selected_part_pos].elemNev,
+            "elemAr":           parts[selected_part_pos].elemAr,
+            "meret":            parts[selected_part_pos].meret,
+            "keszlet":          parts[selected_part_pos].keszlet + parseInt(document.getElementById("db").value),
+            "alkatreszAllapot": parts[selected_part_pos].alkatreszAllapot,
         }
 
-        putData('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Alkatresz/'+parts[document.getElementById("part_name").selectedIndex].elemId, alkatresz).then((data) =>
+        putData('https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Alkatresz/'+parts[selected_part_pos].elemId, alkatresz).then((data) =>
         {
             console.log(data);
         });
@@ -1067,6 +1082,7 @@
         return place;
     }
 
+    //rekesz méret módosítás
     function Crate_Max_Number_Modify(){
         getData(" https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Raktar")
             .then((data) => {
@@ -1106,6 +1122,7 @@
         });
     }
 
+    //rendelés kitöltése
     function Project_Draft(){
         getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt").
         then((data) =>
@@ -1123,31 +1140,49 @@
             then((order_data) =>
             {
                 orders = order_data;
+                getData(" https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Alkatresz").
+                then((part_data) =>
+                {
+                    parts = part_data;
+                    $("#Project_draft_modal").modal('toggle');
+                });
                 Draft_fill();
             });
         });
-        $("#Project_draft_modal").modal('toggle');
     }
     function Draft_fill(){
-        document.getElementById("orderId").innerHTML = "";
-        for (let i=0;i<projects.length;i++){
-            if ( parseInt(projects[i].megrendelesId) ===  parseInt(projects[search_projektId(projects,document.getElementById("projektId").options[document.getElementById("projektId").selectedIndex].text)].megrendelesId))
-                document.getElementById("orderId").innerHTML += '<option>' + projects[search_projektId(projects,document.getElementById("projektId").options[document.getElementById("projektId").selectedIndex].text)].megrendelesId + '</option>';
-        }
+        let selected_project_id = projects[search_projektId(projects,document.getElementById("projektId").options[document.getElementById("projektId").selectedIndex].text)].projektId;
+        console.log(selected_project_id);
 
+        document.getElementById("orderId").innerHTML = "";
+        for(let i=0;i<projects.length;i++){
+            if (projects[i].projektId == selected_project_id){
+                // console.log(projects[i]);
+                document.getElementById("orderId").innerHTML += '<option>' + projects[i].megrendelesId + '</option>';
+            }
+        }
     }
     function Draft(){
+        let selected_order = orders[search_orderID(orders,document.getElementById("orderId").options[document.getElementById("orderId").selectedIndex].text)];
+
         let array = {
-            "megrendelesId":    document.getElementById("orderId").options[document.getElementById("orderId").selectedIndex].text,
-            "elemId":           orders[search_orderID(orders,document.getElementById("orderId").options[document.getElementById("orderId").selectedIndex].text)].elemId,
-            "elemDb":           orders[search_orderID(orders,document.getElementById("orderId").options[document.getElementById("orderId").selectedIndex].text)].szuksegesKeszlet,
-            "szuksegesKeszlet": orders[search_orderID(orders,document.getElementById("orderId").options[document.getElementById("orderId").selectedIndex].text)].szuksegesKeszlet,
-            "foglalt":          orders[search_orderID(orders,document.getElementById("orderId").options[document.getElementById("orderId").selectedIndex].text)].foglalt,
+            "megrendelesId":       document.getElementById("orderId").options[document.getElementById("orderId").selectedIndex].text,
+            "elemId":              selected_order.elemId,
+            "elemDb":              selected_order.szuksegesKeszlet,
+            "elofoglaltKeszlet":   selected_order.elofoglaltKeszlet,
+            "szabadKeszlet":       selected_order.szabadKeszlet,
+            "szuksegesKeszlet":    selected_order.szuksegesKeszlet,
+            "foglalt":             selected_order.foglalt,
+            "lefoglalandoKeszlet": 0
         }
 
-        let proj_pos = search_orderID(orders,document.getElementById("orderId").options[document.getElementById("orderId").selectedIndex].text);
-        let elem_pos = search_elemId(parts,orders[proj_pos].elemId);
-        let lefoglalt_alkatresz = orders[search_orderID(orders,document.getElementById("orderId").options[document.getElementById("orderId").selectedIndex].text)].szuksegesKeszlet - orders[search_orderID(orders,document.getElementById("orderId").options[document.getElementById("orderId").selectedIndex].text)].elemDb;
+        let elem_pos = search_elemId(parts,selected_order.elemId);
+        if(elem_pos == -1){
+            $("#Project_draft_modal").modal('toggle');
+            alert("Nincs ilyen alkatrész az adatbázisban.");
+        }
+
+        let lefoglalt_alkatresz = selected_order.szuksegesKeszlet - selected_order.elemDb;
         let alkatresz_array = {
             "elemId":           parts[elem_pos].elemId,
             "elemNev":          parts[elem_pos].elemNev,
@@ -1171,6 +1206,7 @@
         });
     }
 
+    //idő és pénz
     function Project_Time_Payment(){
         getData(" https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt")
             .then((data) => {
@@ -1215,6 +1251,7 @@
         `;
     }
 
+    //projekt hozzáadása
     function AddProject_Modal_Open(){
         getData(" https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Megrendeles")
             .then((data) => {
@@ -1243,6 +1280,7 @@
             .catch(error => console.log(error));
     }
 
+    //projekt listázása
     function Project_Listing(){
         getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt").
             then((data) => {
@@ -1270,6 +1308,7 @@
             });
     }
 
+    //alaktrész listázása
     function Part_Listing(){
         getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Alkatresz").
             then((data) => {
@@ -1296,6 +1335,7 @@
 
     }
 
+    //projekt kiválasztása
     function P_Selecting(){
         getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt").
         then((data) =>
@@ -1352,7 +1392,7 @@
                 selected_projekts.push(projects[i]);
             }
         }
-        console.log(selected_projekts);
+        // console.log(selected_projekts);
 
         for (let i=0;i<selected_projekts.length;i++){
             let array = {
@@ -1371,6 +1411,7 @@
         }
     }
 
+    //projekthez tartozó alkatrészek
     function Project_Parts_Selecting(){
         getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt").
         then((data) =>
@@ -1435,15 +1476,16 @@
 
         if (selected_parts.length > 1) {
             document.getElementById("project_part_name").innerText =    selected_parts[0].elemNev;
-            document.getElementById("project_alkatresz_db").innerText = selected_parts[0].keszlet;
+            document.getElementById("project_alkatresz_db").innerText = selected_orders[0].szuksegesKeszlet;
             for (let i=1;i<selected_parts.length;i++){
                 document.getElementById("project_alkatresz_table").innerHTML += `
                             <div  class="col-9">
                                 `+selected_parts[i].elemNev+`
                             </div>
                             <div class="col-3">
-                                `+selected_parts[i].keszlet+`
+                                `+selected_orders[i].szuksegesKeszlet+`
                             </div>`;
+                console.log(selected_orders[i].megrendelesId + " | " + selected_orders[i].szuksegesKeszlet);
             }
         }else{
             document.getElementById("project_part_name").innerText =    selected_parts[0].elemNev;
@@ -1512,12 +1554,13 @@
         document.getElementById("project_sor").innerText = selected_crate.sor;
         document.getElementById("project_oszlop").innerText = selected_crate.oszlop;
         document.getElementById("project_szint").innerText = selected_crate.szint;
+        document.getElementById("project_keszlet").innerText = selected_crate.tartalmazDb;
     }
     // legrövidebb út
     function shortest_route(json){
         json.sort();
 
-        console.log(document.getElementById("project_route").innerText);
+        // console.log(document.getElementById("project_route").innerText);
         document.getElementById("project_route").innerText = "";
 
         for (let i=0;i<json.length;i++){
@@ -1525,6 +1568,7 @@
         }
     }
 
+    //teljes ár
     function open_setPrice_Modal(){
         getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt").
         then((data) =>
@@ -1559,6 +1603,7 @@
         document.getElementById("price_cal").innerHTML = megrendelesek_osszege;
     }
 
+    //projekt befejezése
     function open_finishProject_Modal(){
         getData("https://dotnetappsqldbrendszerfejlesztes.azurewebsites.net/api/Projekt").
         then((data) =>
@@ -1575,7 +1620,6 @@
             $('#Fin_Project').modal('toggle');
         });
     }
-
     function finishProject()
     {
         let comp_projekts = [];
@@ -1602,6 +1646,7 @@
         }
     }
 
+    //beléptető
     function Authorizator(num){
         console.log(num);
         let gombok = document.getElementById("navbarNav").getElementsByTagName("li");
@@ -1650,6 +1695,7 @@
         }
     }
 
+    //megjelnítés
     function Show_Table(){
         let table = document.getElementById("table_show").options[document.getElementById("table_show").selectedIndex].value;
         document.getElementById("table").innerHTML = '<div class="loader"></div>';
@@ -1661,6 +1707,9 @@
                         document.getElementById("table").innerHTML = `
                             <div class="row">
                                 <div class="col-1">
+                                    Projekt tábla azonosító
+                                </div>
+                                <div class="col-1">
                                     Projekt azonosító
                                 </div>
                                 <div class="col-2">
@@ -1669,7 +1718,7 @@
                                 <div class="col-2">
                                     Megrendelés azonosító
                                 </div>
-                                <div class="col-4">
+                                <div class="col-3">
                                     Dátum
                                 </div>
                                 <div class="col-3">
@@ -1682,6 +1731,9 @@
                             document.getElementById("table").innerHTML += `
                             <div class="row">
                                 <div class="col-1">
+                                    `+data[d].projektTablaId+`
+                                </div>
+                                <div class="col-1">
                                     `+data[d].projektId+`
                                 </div>
                                 <div class="col-2">
@@ -1690,7 +1742,7 @@
                                 <div class="col-2">
                                     `+data[d].megrendelesId+`
                                 </div>
-                                <div class="col-4">
+                                <div class="col-3">
                                     `+data[d].datum+`
                                 </div>
                                 <div class="col-3">
